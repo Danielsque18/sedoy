@@ -1,0 +1,63 @@
+<!doctype html>
+<html lang="ru">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<meta name="robots" content="noindex, nofollow">
+<title>SEDOY · Управление сайтом</title>
+<link rel="icon" href="../img/logo.png">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Oswald:wght@500;600&family=Manrope:wght@400;500;600;700&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="admin.css">
+</head>
+<body>
+
+<!-- Вход -->
+<section class="login" id="login" hidden>
+  <form class="login__box" id="loginForm">
+    <div class="logo">SEDOY<span>управление сайтом</span></div>
+    <label>Пароль<input type="password" id="pass" autocomplete="current-password" required autofocus></label>
+    <button class="btn btn--main" type="submit">Войти</button>
+    <p class="login__err" id="loginErr"></p>
+    <p class="login__demo" id="loginDemo" hidden>Это демо. Пароль: <b>sedoy</b></p>
+  </form>
+</section>
+
+<!-- Панель -->
+<div class="app" id="app" hidden>
+  <aside class="side">
+    <div class="logo">SEDOY<span>управление сайтом</span></div>
+    <nav class="tabs" id="tabs">
+      <button data-tab="prices" class="on">💈 Услуги и цены</button>
+      <button data-tab="masters">✂️ Мастера</button>
+      <button data-tab="gallery">🖼 Фото</button>
+      <button data-tab="offers">🎁 Акции</button>
+      <button data-tab="reviews">⭐ Отзывы</button>
+      <button data-tab="perks">☕ Сервис</button>
+      <button data-tab="contacts">📍 Контакты</button>
+      <button data-tab="settings">⚙️ Настройки</button>
+    </nav>
+    <a class="side__site" href="../index.html" target="_blank">Открыть сайт ↗</a>
+    <button class="side__out" id="logout">Выйти</button>
+  </aside>
+
+  <main class="main">
+    <div class="demo-note" id="demoNote" hidden>
+      <b>Демо-режим.</b> Изменения сохраняются только в этом браузере — откройте сайт, и увидите их. На настоящем хостинге они сразу видны всем.
+      <button id="demoReset">Сбросить демо</button>
+    </div>
+    <div id="panel"></div>
+  </main>
+
+  <div class="savebar" id="savebar">
+    <span id="saveState">Все изменения сохранены</span>
+    <button class="btn btn--main" id="saveBtn" disabled>Сохранить</button>
+  </div>
+</div>
+
+<div class="toast" id="toast"></div>
+<script src="../data/content.js"></script>
+<script src="admin.js"></script>
+</body>
+</html>

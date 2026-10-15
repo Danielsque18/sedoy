@@ -1,0 +1,262 @@
+<!doctype html>
+<html lang="ru">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<title>SEDOY — барбершоп в Омске</title>
+<meta name="description" content="Барбершоп SEDOY в Омске: мужские и детские стрижки, борода, королевское бритьё, мужской маникюр. 5,0 по 620 оценкам в 2ГИС. ул. 10 лет Октября, 43. Онлайн-запись.">
+<meta name="theme-color" content="#0b0b0c">
+<link rel="icon" href="img/favicon.svg" type="image/svg+xml">
+<link rel="apple-touch-icon" href="img/logo.png">
+<!-- Превью ссылки в Telegram/WhatsApp/VK. При переезде на свой домен поменять адрес в og:url и og:image -->
+<meta property="og:type" content="website">
+<meta property="og:site_name" content="SEDOY">
+<meta property="og:title" content="SEDOY — барбершоп в Омске">
+<meta property="og:description" content="Стрижки, борода, королевское бритьё и мужской маникюр. 5,0 в 2ГИС. 10 лет Октября, 43 — запись онлайн.">
+<meta property="og:url" content="https://danielsque18.github.io/sedoy/">
+<meta property="og:image" content="https://danielsque18.github.io/sedoy/img/og.jpg">
+<meta property="og:image:width" content="1200">
+<meta property="og:image:height" content="630">
+<meta name="twitter:card" content="summary_large_image">
+<link rel="preload" as="image" href="img/hall.jpg">
+<script type="application/ld+json">{"@context": "https://schema.org", "@type": "BarberShop", "name": "SEDOY барбершоп", "description": "Территория мужского стиля и безупречного сервиса", "address": {"@type": "PostalAddress", "streetAddress": "ул. 10 лет Октября, 43", "addressLocality": "Омск", "postalCode": "644024", "addressCountry": "RU"}, "geo": {"@type": "GeoCoordinates", "latitude": 54.985123, "longitude": 73.393324}, "telephone": "+7 901 263-51-97", "email": "sedoy_b24@mail.ru", "openingHours": "Mo-Su 10:00-21:00", "priceRange": "₽₽", "image": "img/og.jpg", "sameAs": ["https://vk.com/barbershop_sedoy", "https://t.me/barbershop_sedoy"]}</script>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Oswald:wght@300;400;500;600;700&family=Manrope:wght@400;500;600;700&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="style.css">
+<script>window.SEDOY_DEMO = true;</script>
+</head>
+<body>
+
+<div class="progress" id="progress" aria-hidden="true"></div>
+<header class="nav" id="nav">
+  <a href="#top" class="nav__logo" aria-label="SEDOY">SEDOY<span>барбершоп</span></a>
+  <nav class="nav__links">
+    <a href="#prices">Цены</a>
+    <a href="#masters">Мастера</a>
+    <a href="#offers">Абонементы</a>
+    <a href="#reviews">Отзывы</a>
+    <a href="#contacts">Контакты</a>
+  </nav>
+  <a class="nav__phone" data-bind="phone-link" href="#"></a>
+  <button class="btn btn--led btn--sm" data-book>Записаться</button>
+</header>
+
+<!-- HERO: потолок из LED-рамок, как в зале, и неоновая вывеска -->
+<section class="hero" id="top">
+  <div class="hero__wall"></div>
+  <svg class="hero__ceiling" id="ceiling" aria-hidden="true"></svg>
+  <div class="hero__floor" aria-hidden="true"></div>
+  <div class="hero__content">
+    <p class="hero__kicker"><span class="dot"></span> <span id="openNow">Омск</span> <span class="kicker__addr">· 10 лет Октября, 43</span> · <span data-bind="years"></span> лет</p>
+    <h1 class="neon" id="neon" aria-label="SEDOY"></h1>
+    <p class="hero__lead" data-bind="tagline"></p>
+    <div class="hero__actions">
+      <button class="btn btn--led" data-book>Записаться онлайн</button>
+      <a class="btn btn--ghost" href="#prices">Рассчитать стоимость</a>
+    </div>
+    <a class="hero__rating" href="#reviews">
+      <b data-bind="rating"></b>
+      <span class="stars">★★★★★</span>
+      <span><span data-bind="ratings_count"></span> оценок в 2ГИС</span>
+    </a>
+  </div>
+  <div class="hero__scroll" aria-hidden="true"><span></span></div>
+</section>
+
+<!-- Настоящий зал: тот же свет, что на первом экране -->
+<section class="hall" id="hall">
+  <div class="hall__img"><img src="img/hall.jpg" alt="Зал барбершопа SEDOY: LED-рамки на потолке и неоновая вывеска" loading="lazy"></div>
+  <div class="hall__cap">
+    <p class="eyebrow">Это не графика</p>
+    <h2>Это наш<br>потолок</h2>
+    <p>Свет, который вы видели наверху, висит над креслами на 10 лет Октября, 43. Приходите посмотреть вживую.</p>
+  </div>
+</section>
+
+<section class="numbers">
+  <div class="wrap numbers__grid">
+    <div><b data-count="yc_ratings"></b><span>оценок в онлайн-записи</span></div>
+    <div><b data-count="yc_five"></b><span>из них — пять звёзд</span></div>
+    <div><b data-bind="clients"></b><span>клиентов уже у нас были</span></div>
+    <div><b data-bind="rating"></b><span>в 2ГИС, <span data-bind="ratings_count"></span> оценок</span></div>
+  </div>
+</section>
+
+<!-- Манифест: слова «седеют» по мере прокрутки -->
+<section class="manifest">
+  <p class="manifest__text" id="manifest">Семь лет мы стрижём Омск. Горячее полотенце, кофе с конфетами в дорогу, PlayStation, пока ждёте, и мастер, который выслушает. Поэтому у нас больше пятисот пятидесяти отзывов и средняя оценка пять.</p>
+</section>
+
+<!-- Цены + калькулятор -->
+<section class="prices" id="prices">
+  <div class="wrap">
+    <div class="sec-head">
+      <p class="eyebrow">Цены и калькулятор</p>
+      <h2>Соберите визит —<br>увидите итог сразу</h2>
+      <p class="sec-head__note">Выберите мастера и нажмите на услуги. Цены из нашей онлайн-записи.</p>
+    </div>
+
+    <div class="levels" id="levels" role="tablist" aria-label="Мастер"></div>
+
+    <div class="calc">
+      <div class="calc__menu">
+        <div class="groups" id="groups"></div>
+        <ul class="svc" id="svcList"></ul>
+      </div>
+      <aside class="ticket" id="ticket">
+        <div class="ticket__head">
+          <span>SEDOY</span><span class="ticket__no">№ <span id="ticketNo">0001</span></span>
+        </div>
+        <p class="ticket__level">Мастер: <b id="ticketLevel"></b></p>
+        <ul class="ticket__items" id="ticketItems"><li class="ticket__empty">Пока пусто — выберите услуги</li></ul>
+        <div class="ticket__total"><span>Итого</span><b id="ticketTotal">0 ₽</b></div>
+        <p class="ticket__hint" id="ticketHint"></p>
+        <button class="btn btn--led btn--block" data-book>Записаться</button>
+        <button class="ticket__clear" id="ticketClear" type="button">Очистить</button>
+      </aside>
+    </div>
+  </div>
+</section>
+
+<!-- Мастера -->
+<section class="masters" id="masters">
+  <div class="wrap">
+    <div class="sec-head">
+      <p class="eyebrow">Команда</p>
+      <h2>Мастера, к которым<br>возвращаются</h2>
+      <p class="sec-head__note">Отзывы — из нашей онлайн-записи. Наведите на фото.</p>
+    </div>
+    <div class="masters__grid" id="mastersGrid"></div>
+  </div>
+</section>
+
+<!-- Галерея -->
+<section class="gallery">
+  <div class="gallery__track" id="gallery"></div>
+</section>
+
+<!-- Чем мы отличаемся: фото меняется вместе с пунктом -->
+<section class="perks">
+  <div class="wrap perks__inner">
+    <div class="perks__media"><div class="perks__frame led-frame" id="perksFrame"></div></div>
+    <div class="perks__body">
+      <div class="sec-head">
+        <p class="eyebrow">Сервис</p>
+        <h2>Больше, чем<br>стрижка</h2>
+      </div>
+      <ol class="perks__list" id="perks"></ol>
+    </div>
+  </div>
+</section>
+
+<!-- Абонементы и сертификаты -->
+<section class="offers" id="offers">
+  <div class="wrap">
+    <div class="sec-head">
+      <p class="eyebrow">Выгоднее</p>
+      <h2>Абонементы<br>и сертификаты</h2>
+    </div>
+    <div class="offers__grid" id="offersGrid"></div>
+    <div class="shop">
+      <div class="shop__head"><h3 id="shopTitle"></h3><p id="shopText"></p></div>
+      <div class="shop__track" id="shopTrack"></div>
+    </div>
+  </div>
+</section>
+
+<!-- Отзывы -->
+<section class="reviews" id="reviews">
+  <div class="wrap">
+    <div class="reviews__top">
+      <div class="bigrate">
+        <b data-bind="rating"></b>
+        <div><span class="stars">★★★★★</span><span><span data-bind="ratings_count"></span> оценок · <span data-bind="reviews_count"></span> отзывов в 2ГИС</span></div>
+      </div>
+      <div class="reviews__nav">
+        <button class="round" id="revPrev" aria-label="Назад">←</button>
+        <button class="round" id="revNext" aria-label="Вперёд">→</button>
+      </div>
+    </div>
+    <div class="reviews__track" id="reviewsTrack"></div>
+  </div>
+</section>
+
+<!-- Приложение -->
+<section class="app">
+  <div class="wrap app__inner led-frame">
+    <div class="app__text">
+      <p class="eyebrow">Приложение SEDOY</p>
+      <h2>Запись<br>в два касания</h2>
+      <p>Ваши визиты, любимый мастер, кешбэк и абонементы — в приложении барбершопа. Наведите камеру на код или нажмите кнопку.</p>
+      <div class="app__btns" id="appBtns"></div>
+    </div>
+    <div class="phone">
+      <div class="phone__screen">
+        <div class="phone__notch"></div>
+        <img src="img/logo.png" alt="" class="phone__logo">
+        <div class="qr" id="qr"></div>
+        <p class="phone__cap">Сканируйте, чтобы скачать</p>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- Контакты -->
+<section class="contacts" id="contacts">
+  <div class="wrap contacts__inner">
+    <div class="contacts__info">
+      <p class="eyebrow">Контакты</p>
+      <h2>Ждём вас</h2>
+      <dl>
+        <dt>Адрес</dt><dd><button class="copy" id="copyAddr" type="button" title="Скопировать адрес"><span data-bind="address"></span> <span class="copy__ic">⧉</span></button><br><a class="route" id="route" target="_blank" rel="noopener">Построить маршрут →</a></dd>
+        <dt>Часы</dt><dd><span data-bind="hours"></span><small class="today" id="today"></small></dd>
+        <dt>Парковка</dt><dd data-bind="parking"></dd>
+        <dt>Телефон</dt><dd><a data-bind="phone-link" href="#"></a><br><a data-bind="phone2-link" href="#"></a></dd>
+      </dl>
+      <div class="socials" id="socials"></div>
+      <button class="btn btn--led" data-book>Записаться онлайн</button>
+    </div>
+    <div class="contacts__map led-frame" id="map"></div>
+  </div>
+</section>
+
+<footer class="foot">
+  <div class="wrap foot__inner">
+    <span class="foot__logo">SEDOY</span>
+    <span>© <span id="year"></span> Барбершоп SEDOY, Омск</span>
+    <a href="admin/index.html" class="foot__admin" id="footAdmin" hidden>Вход для администратора</a>
+    <a href="https://danielsque18.github.io/portfolio/" class="foot__credit" target="_blank" rel="noopener">Сайт — Даниил Демьянов</a>
+  </div>
+</footer>
+
+<!-- Мобильная кнопка записи -->
+<div class="mbar"><button class="btn btn--led btn--block" data-book id="mbarBtn">Записаться</button><a class="mbar__call" data-bind="phone-link" href="#" aria-label="Позвонить">☎</a></div>
+
+<!-- Окно записи YClients -->
+<div class="book" id="book" aria-hidden="true">
+  <div class="book__backdrop" data-close></div>
+  <div class="book__panel" role="dialog" aria-label="Онлайн-запись">
+    <div class="book__bar">
+      <span>Онлайн-запись · SEDOY</span>
+      <a id="bookExt" href="#" target="_blank" rel="noopener">Открыть в новом окне ↗</a>
+      <button class="book__x" data-close aria-label="Закрыть">✕</button>
+    </div>
+    <iframe id="bookFrame" title="Онлайн-запись SEDOY" loading="lazy"></iframe>
+  </div>
+</div>
+
+<a class="owner-chip" id="ownerChip" hidden>✎ Редактировать сайт</a>
+
+<div class="demo-chip" id="demoChip" hidden>
+  <span>Демо-версия</span>
+  <a href="admin/index.html">Попробовать админку →</a>
+</div>
+
+<div class="stoast" id="stoast" role="status"></div>
+
+<script src="https://cdnjs.cloudflare.com/ajax/libs/qrcodejs/1.0.0/qrcode.min.js" integrity="sha384-3zSEDfvllQohrq0PHL1fOXJuC/jSOO34H46t6UQfobFOmxE5BpjjaIJY5F2/bMnU" crossorigin="anonymous"></script>
+<script src="data/content.js"></script>
+<script src="script.js"></script>
+</body>
+</html>
