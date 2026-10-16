@@ -3,7 +3,7 @@
   const $$ = (s, r = document) => [...r.querySelectorAll(s)];
   const esc = s => String(s ?? '').replace(/[&<>"']/g, c => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;' }[c]));
   const DEMO_KEY = 'sedoy_demo_content';
-  const DEMO_PASS = 'sedoy';
+  const DEMO_PASS = 'sedoy7431';
 
   let demo = false, csrf = '', C = null, saved = '', tab = 'prices', group = null;
 
@@ -24,18 +24,29 @@
     catch (e) { return true; }
   }
   async function loadSiteContent() {
-    if (demo) { try { const d = localStorage.getItem(DEMO_KEY); if (d) return JSON.parse(d); } catch (e) {} }
+    let base = null;
     try {
       const r = await fetch('../data/content.json?v=' + Date.now(), { cache: 'no-store' });
-      if (r.ok) return await r.json();
+      if (r.ok) base = await r.json();
     } catch (e) {}
-    return JSON.parse(JSON.stringify(window.SEDOY_SEED));
+    base ||= JSON.parse(JSON.stringify(window.SEDOY_SEED));
+    if (demo) { try { const d = localStorage.getItem(DEMO_KEY); if (d) return upgradeDraft(JSON.parse(d), base); } catch (e) {} }
+    return base;
+  }
+  // черновик демо мог быть сохранён старой версией сайта — дополняем его новыми полями из свежего content.json
+  function upgradeDraft(d, base) {
+    if (!base) return d;
+    for (const k in base) if (!(k in d)) d[k] = base[k];
+    for (const k in base.brand || {}) if (!d.brand[k]) d.brand[k] = base.brand[k];
+    (d.services || []).forEach(s => { const b = base.services.find(x => x.name === s.name && x.group === s.group); if (b) { if (!s.yc && b.yc) s.yc = b.yc; if (!s.img && b.img) s.img = b.img; } });
+    (d.masters || []).forEach(m => { const b = base.masters.find(x => String(x.yc_id) === String(m.yc_id)); if (b && !('level' in m)) m.level = b.level; });
+    return d;
   }
 
   /* ---------- старт ---------- */
   (async function init() {
     demo = await detect();
-    if (demo) { $('#loginDemo').hidden = false; $('#demoNote').hidden = false; }
+    if (demo) $('#demoNote').hidden = false;
     if (!demo) {
       try { const me = await api('me'); if (me.auth) { csrf = me.csrf; return start(); } } catch (e) {}
     } else if (sessionStorage.getItem('sedoy_demo_auth')) return start();
@@ -160,6 +171,10 @@
     if (el.hasAttribute('data-num')) { v = v.replace(/[^\d]/g, ''); el.value = v; v = v === '' ? null : +v; }
     setPath(el.dataset.k, v); markDirty();
   });
+  document.addEventListener('input', e => {
+    const el = e.target.closest('[data-lines]'); if (!el || !C) return;
+    C[el.dataset.lines] = el.value.split('\n').map(s => s.trim()).filter(Boolean); markDirty();
+  });
   const move = (arr, i, d) => { const j = i + d; if (j < 0 || j >= arr.length) return; [arr[i], arr[j]] = [arr[j], arr[i]]; };
   const tools = (list, i) => `<div class="tools">
     <button class="icon" data-act="up" data-list="${list}" data-i="${i}" title="Выше">↑</button>
@@ -232,6 +247,7 @@
           <div class="ph">${m.photo ? `<img src="${esc(imgSrc(m.photo))}" alt="">` : ''}<button class="ph__btn" data-act="photo" data-list="masters" data-i="${i}">Сменить фото</button></div>
           <div>
             <div class="grid2">${field('Имя', `masters.${i}.name`)}${field('Должность', `masters.${i}.role`)}${field('Отзывов', `masters.${i}.reviews`, { num: true })}${field('Номер в YClients', `masters.${i}.yc_id`, { num: true, ph: 'необязательно' })}</div>
+            <div style="height:10px"></div><label><span>Прайс мастера (вкладка в калькуляторе)</span><select data-k="masters.${i}.level"><option value="">не показывать в калькуляторе</option>${C.levels.map(l => `<option value="${esc(l.id)}"${m.level === l.id ? ' selected' : ''}>${esc(l.name)}</option>`).join('')}</select></label>
             <div style="height:10px"></div>${field('О себе', `masters.${i}.bio`, { area: true })}
             <div style="height:10px"></div><div class="grid2">${field('Цитата из отзыва (видна при наведении)', `masters.${i}.quote`)}${field('Чей отзыв', `masters.${i}.quote_author`)}</div>
             ${tools('masters', i)}
@@ -259,14 +275,20 @@
       C.shop ||= { title: 'Косметика и подарочные наборы', text: '', items: [] };
       bindAfter = () => {
         $('#addO').onclick = () => { C.offers.push({ title: 'Новая акция', price: null, text: '' }); render(); markDirty(); };
+        $('#addPr').onclick = () => { C.promos.push({ big: '10%', title: 'Новая акция', text: '', kind: '' }); render(); markDirty(); };
         $('#shopDrop').onclick = async () => { const p = await uploadImage(await pickImage()); if (p) { C.shop.items.push({ src: p, alt: '' }); render(); markDirty(); } };
       };
-      return `<h1>Акции</h1><p class="lead">Абонементы, сертификаты, сезонные предложения. Цену можно не указывать.</p>
+      C.promos ||= [];
+      return `<h1>Акции</h1><p class="lead">Блок «Акции» на сайте: скидки и кэшбэк. Крупная цифра — то, что видно первым.</p>
+        ${C.promos.map((o, i) => `<div class="card"><div class="grid2">${field('Крупно (например, 20%)', `promos.${i}.big`)}${field('Название', `promos.${i}.title`)}</div>
+          <div style="height:10px"></div>${field('Текст', `promos.${i}.text`, { area: true })}${tools('promos', i)}</div>`).join('')}
+        <button class="add" id="addPr">+ Добавить акцию</button>
+        <h1 style="margin-top:40px">Абонементы и сертификаты</h1><p class="lead">Цену можно не указывать.</p>
         ${C.offers.map((o, i) => `<div class="card mst">
           <div class="ph">${o.img ? `<img src="${esc(imgSrc(o.img))}" alt="">` : '<span class="muted" style="display:grid;place-items:center;height:100%">без фото</span>'}<button class="ph__btn" data-act="photo" data-list="offers" data-i="${i}">${o.img ? 'Сменить' : 'Добавить'} фото</button></div>
           <div><div class="grid2">${field('Название', `offers.${i}.title`)}${field('Цена', `offers.${i}.price`, { num: true, ph: 'без цены' })}</div>
           <div style="height:10px"></div>${field('Текст', `offers.${i}.text`, { area: true })}${tools('offers', i)}${o.img ? `<button class="btn btn--sm btn--ghost" style="margin-top:8px" data-act="nophoto" data-list="offers" data-i="${i}">Убрать фото</button>` : ''}</div></div>`).join('')}
-        <button class="add" id="addO">+ Добавить акцию</button>
+        <button class="add" id="addO">+ Добавить абонемент или сертификат</button>
         <h1 style="margin-top:40px">Витрина</h1><p class="lead">Косметика и наборы под абонементами.</p>
         <div class="card"><div class="grid2">${field('Заголовок', 'shop.title')}${field('Текст', 'shop.text')}</div></div>
         <div class="gal">${(C.shop?.items || []).map((g, i) => `<div class="card"><div class="ph"><img src="${esc(imgSrc(g.src))}" alt=""></div>${field('Подпись', `shop.items.${i}.alt`)}
@@ -307,6 +329,12 @@
           ${field('ВКонтакте', `${b}.vk`)}${field('WhatsApp', `${b}.whatsapp`)}
           ${field('Приложение в App Store', `${b}.app_ios`)}${field('Приложение в Google Play / RuStore', `${b}.app_android`, { ph: 'если есть' })}
         </div></div>
+        <div class="card"><p class="muted" style="margin-bottom:10px">О нас</p>
+          ${field('Заголовок', 'about.title')}<div style="height:10px"></div>${field('Текст на фото зала', 'about.lead', { area: true })}
+          <div style="height:10px"></div>${field('Крупный текст (слова светлеют при прокрутке)', 'about.manifest', { area: true })}
+          <div style="height:10px"></div>${field('Текст под ним', 'about.text', { area: true })}</div>
+        <div class="card"><p class="muted" style="margin-bottom:10px">Что можно в приложении (каждый пункт с новой строки)</p>
+          <textarea data-lines="app_features" rows="8">${esc((C.app_features || []).join('\n'))}</textarea></div>
         <div class="card"><p class="muted" style="margin-bottom:10px">Рейтинг и цифры на сайте</p><div class="grid3">
           ${field('Оценка в 2ГИС', 'stats.rating')}${field('Оценок в 2ГИС', 'stats.ratings_count', { num: true })}${field('Отзывов в 2ГИС', 'stats.reviews_count', { num: true })}
           ${field('Оценок в YClients', 'stats.yc_ratings', { num: true })}${field('Из них пятёрок', 'stats.yc_five', { num: true })}${field('Клиентов (текстом)', 'stats.clients', { ph: '6 500+' })}

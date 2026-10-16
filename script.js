@@ -9,14 +9,25 @@
 
   // В демо админка сохраняет черновик в браузере — сайт показывает его.
   async function loadContent() {
-    if (window.SEDOY_DEMO) {
-      try { const d = localStorage.getItem(DEMO_KEY); if (d) return JSON.parse(d); } catch (e) {}
-    }
+    let base = null;
     try {
       const r = await fetch('data/content.json?v=' + Date.now(), { cache: 'no-store' });
-      if (r.ok) return await r.json();
+      if (r.ok) base = await r.json();
     } catch (e) {}
-    return window.SEDOY_SEED; // открыли файлом без сервера
+    base ||= window.SEDOY_SEED; // открыли файлом без сервера
+    if (window.SEDOY_DEMO) {
+      try { const d = localStorage.getItem(DEMO_KEY); if (d) return upgradeDraft(JSON.parse(d), base); } catch (e) {}
+    }
+    return base;
+  }
+  // черновик демо мог быть сохранён старой версией сайта — дополняем его новыми полями из свежего content.json
+  function upgradeDraft(d, base) {
+    if (!base) return d;
+    for (const k in base) if (!(k in d)) d[k] = base[k];
+    for (const k in base.brand || {}) if (!d.brand[k]) d.brand[k] = base.brand[k];
+    (d.services || []).forEach(s => { const b = base.services.find(x => x.name === s.name && x.group === s.group); if (b) { if (!s.yc && b.yc) s.yc = b.yc; if (!s.img && b.img) s.img = b.img; } });
+    (d.masters || []).forEach(m => { const b = base.masters.find(x => String(x.yc_id) === String(m.yc_id)); if (b && !('level' in m)) m.level = b.level; });
+    return d;
   }
 
   hero(); // вывеска и свет не ждут данных
@@ -35,25 +46,23 @@
       else if (k in bind) el.textContent = bind[k];
     });
     $('#year').textContent = new Date().getFullYear();
-    if (window.SEDOY_DEMO) { $('#demoChip').hidden = false; $('#footAdmin').hidden = false; }
-    else {
-      // на боевом сайте кнопку видит только тот, кто входил в админку с этого устройства
-      try { const u = localStorage.getItem('sedoy_admin_url'); if (u && /^https?:|^file:/.test(u)) { const c = $('#ownerChip'); c.href = u; c.hidden = false; } } catch (e) {}
-    }
+    // кнопку «Редактировать сайт» видит только тот, кто входил в админку с этого устройства
+    try { const u = localStorage.getItem('sedoy_admin_url'); if (u && /^https?:|^file:/.test(u)) { const c = $('#ownerChip'); c.href = u; c.hidden = false; } } catch (e) {}
     extras(B);
 
     openNowDot();
     hall();
     counters(S);
-    manifest();
+    about(C);
     calculator(C);
     masters(C, B);
     gallery(C);
     perks(C);
     shop(C);
+    promos(C);
     offers(C);
     reviews(C);
-    app(B);
+    app(B, C);
     contacts(B);
     booking(B);
     reveal();
@@ -101,8 +110,7 @@
       }
     }
     let raf = null;
-    const chip = $('#demoChip');
-    const tick = () => { raf = null; nav.classList.toggle('is-solid', scrollY > 40); chip.classList.toggle('away', innerWidth < 640 && scrollY > innerHeight * .6); scrollZ = scrollY / 90; frame(); };
+    const tick = () => { raf = null; nav.classList.toggle('is-solid', scrollY > 40); scrollZ = scrollY / 90; frame(); };
     const req = () => { raf ||= requestAnimationFrame(tick); };
     addEventListener('scroll', req, { passive: true });
     addEventListener('resize', req);
@@ -140,7 +148,7 @@
 
   /* ---------- Настоящий зал: фото «наезжает» и светлеет при прокрутке ---------- */
   function hall() {
-    const sec = $('#hall'), img = $('.hall__img img', sec);
+    const sec = $('#about'), img = $('.hall__img img', sec);
     const on = () => {
       const r = sec.getBoundingClientRect();
       const p = Math.min(1, Math.max(0, -r.top / (r.height - innerHeight)));
@@ -165,11 +173,15 @@
     });
   }
 
-  /* ---------- Манифест «седеет» по мере чтения ---------- */
-  function manifest() {
+  /* ---------- О нас: текст «седеет» по мере чтения ---------- */
+  function about(C) {
+    const A = C.about || {};
+    $('#aboutTitle').textContent = A.title || '';
+    $('#aboutLead').textContent = A.lead || '';
+    $('#aboutText').textContent = A.text || '';
     const p = $('#manifest');
-    const hl = ['семь', 'горячее', 'полотенце,', 'кофе', 'playstation,', 'выслушает.', 'пятисот', 'пятидесяти', 'пять.'];
-    p.innerHTML = p.textContent.trim().split(/\s+/).map(w => `<span class="w${hl.includes(w.toLowerCase()) ? ' hl' : ''}">${esc(w)}</span> `).join('');
+    const hl = /^(уют|тепл|дружеск|музык|кофе|ча[ея]|забот|вернуться|вновь)/i;
+    p.innerHTML = String(A.manifest || '').trim().split(/\s+/).map(w => `<span class="w${hl.test(w) ? ' hl' : ''}">${esc(w)}</span> `).join('');
     const ws = $$('.w', p);
     const on = () => {
       const r = p.getBoundingClientRect();
@@ -183,19 +195,24 @@
   /* ---------- Цены + калькулятор ---------- */
   function calculator(C) {
     const levels = C.levels;
-    let level = levels[0].id;
+    // вкладки — конкретные мастера (у каждого свой прайс); если мастерам прайс не назначен — столбцы прайса
+    const tabs = C.masters.filter(m => levels.some(l => l.id === m.level))
+      .map(m => ({ id: 'm' + (m.yc_id || m.name), name: m.name, level: m.level, yc: m.yc_id }));
+    if (!tabs.length) levels.forEach(l => tabs.push({ id: l.id, name: l.name, level: l.id, yc: null }));
+    let tab = tabs[0];
+    let level = tab.level;
     const groups = [...new Set(C.services.map(s => s.group))];
     let group = groups[0];
     const picked = new Map(); // name -> service
 
     const priceOf = s => s.prices.all ?? s.prices[level];
 
-    $('#levels').innerHTML = levels.map(l => `<button role="tab" data-l="${esc(l.id)}">${esc(l.name)}</button>`).join('');
+    $('#levels').innerHTML = tabs.map(l => `<button role="tab" data-l="${esc(l.id)}">${esc(l.name)}</button>`).join('');
     $('#groups').innerHTML = groups.map(g => `<button data-g="${esc(g)}">${esc(g)}</button>`).join('');
 
     $('#levels').onclick = e => {
       const b = e.target.closest('button'); if (!b) return;
-      level = b.dataset.l; draw(true);
+      tab = tabs.find(x => x.id === b.dataset.l) || tab; level = tab.level; draw(true);
     };
     $('#groups').onclick = e => {
       const b = e.target.closest('button'); if (!b) return;
@@ -209,8 +226,25 @@
     };
     $('#ticketClear').onclick = () => { picked.clear(); draw(); };
 
+    // большое фото над списком: фото вкладки, при наведении или выборе — фото услуги, если оно есть
+    const GP = C.group_photos || {};
+    const ph = $('#calcPhoto');
+    const srcs = [...new Set([...Object.values(GP), ...C.services.map(s => s.img)].filter(Boolean))];
+    ph.insertAdjacentHTML('afterbegin', srcs.map(s => `<img src="${esc(s)}" alt="" data-src="${esc(s)}" loading="lazy">`).join(''));
+    if (!srcs.length) ph.remove();
+    const photo = (src, cap) => {
+      $$('img', ph).forEach(i => i.classList.toggle('on', i.dataset.src === src));
+      $('#calcCap').textContent = cap;
+    };
+    const groupPhoto = () => {
+      const last = [...picked.values()].reverse().find(s => s.group === group && s.img);
+      last ? photo(last.img, last.name) : photo(GP[group] || C.services.find(s => s.group === group && s.img)?.img, group);
+    };
+    $('#svcList').onmouseover = e => { const li = e.target.closest('li'); const s = li && C.services[+li.dataset.i]; if (s?.img) photo(s.img, s.name); };
+    $('#svcList').onmouseleave = groupPhoto;
+
     function draw(bump) {
-      $$('#levels button').forEach(b => b.setAttribute('aria-selected', b.dataset.l === level));
+      $$('#levels button').forEach(b => b.setAttribute('aria-selected', b.dataset.l === tab.id));
       $$('#groups button').forEach(b => b.classList.toggle('is-on', b.dataset.g === group));
       $('#svcList').innerHTML = C.services.map((s, i) => {
         if (s.group !== group) return '';
@@ -224,9 +258,10 @@
 
       // убираем из чека то, чего нет у выбранного уровня
       for (const [k, s] of picked) if (priceOf(s) == null) picked.delete(k);
-      const lv = levels.find(l => l.id === level);
-      $('#ticketLevel').textContent = lv ? lv.name : '';
+      groupPhoto();
+      $('#ticketLevel').textContent = tab.name;
       const items = [...picked.values()];
+      bookLink(tab, items);
       $('#ticketItems').innerHTML = items.length
         ? items.map(s => `<li><span>${esc(s.name)}</span><b>${rub(priceOf(s))}</b></li>`).join('')
         : '<li class="ticket__empty">Пока пусто — выберите услуги</li>';
@@ -246,6 +281,16 @@
     draw();
   }
 
+  // ссылка записи из калькулятора: мастер и услуги уже выбраны в YClients (формат o=m<мастер>s<услуга>s<услуга>)
+  let calcLink = '';
+  function bookLink(tab, items) {
+    const svc = items.map(s => s.yc && (s.yc.all ?? s.yc[tab.level])).filter(Boolean);
+    if (!svc.length) { calcLink = ''; return; }
+    // маникюр делают другие мастера — с ним барбера не подставляем
+    const onlyTab = items.every(s => !s.prices.all);
+    calcLink = (onlyTab && tab.yc ? 'm' + tab.yc : '') + svc.map(id => 's' + id).join('');
+  }
+
   function countTo(el, to) {
     const from = +(el.dataset.v || 0); el.dataset.v = to;
     const t0 = performance.now();
@@ -257,13 +302,15 @@
   function masters(C, B) {
     const plural = n => n % 10 === 1 && n % 100 !== 11 ? 'отзыв' : (n % 10 >= 2 && n % 10 <= 4 && (n % 100 < 10 || n % 100 >= 20) ? 'отзыва' : 'отзывов');
     $('#mastersGrid').innerHTML = C.masters.map(m => `
-      <article class="mcard led-frame reveal" tabindex="0" data-master="${esc(m.yc_id || '')}">
-        <img src="${esc(m.photo)}" alt="${esc(m.name)}, ${esc(m.role)}" loading="lazy">
+      <article class="mcard reveal" tabindex="0" data-master="${esc(m.yc_id || '')}">
+        <div class="mcard__ph led-frame">
+          <img src="${esc(m.photo)}" alt="${esc(m.name)}, ${esc(m.role)}" loading="lazy">
+          ${m.quote ? `<p class="mcard__quote">«${esc(m.quote)}»<small>— ${esc(m.quote_author || 'клиент')}, отзыв</small></p>` : (m.bio ? `<p class="mcard__quote">${esc(m.bio)}</p>` : '')}
+        </div>
         <div class="mcard__info">
           <div class="mcard__name">${esc(m.name)}</div>
           <div class="mcard__role">${esc(m.role)}</div>
           ${m.reviews ? `<div class="mcard__rev"><span class="stars">★★★★★</span> ${m.reviews} ${plural(m.reviews)}</div>` : ''}
-          ${m.quote ? `<p class="mcard__quote">«${esc(m.quote)}»<small>— ${esc(m.quote_author || 'клиент')}, отзыв</small></p>` : (m.bio ? `<p class="mcard__bio">${esc(m.bio)}</p>` : '')}
           <span class="mcard__book">Записаться →</span>
         </div>
       </article>`).join('');
@@ -312,6 +359,27 @@
     addEventListener('scroll', move, { passive: true }); addEventListener('resize', move); move();
   }
 
+  /* ---------- Акции ---------- */
+  function promos(C) {
+    const list = C.promos || [];
+    if (!list.length) { $('#promo')?.remove(); $('a[href="#promo"]')?.remove(); return; }
+    const visual = p => {
+      if (p.kind === 'bday') {
+        // полоса из 15 дней: 7 до, день рождения, 7 после — дни загораются по очереди
+        return `<div class="days" aria-hidden="true">${Array.from({ length: 15 }, (_, i) => `<i style="--d:${i}" class="${i === 7 ? 'bd' : ''}">${i === 7 ? '★' : ''}</i>`).join('')}</div>
+          <div class="days__cap"><span>−7 дней</span><span>день рождения</span><span>+7 дней</span></div>`;
+      }
+      if (p.kind === 'cash') {
+        return `<div class="coins" aria-hidden="true">${'<i></i>'.repeat(6)}</div>`;
+      }
+      return '';
+    };
+    $('#promoGrid').innerHTML = list.map(p => `<article class="pcard led-frame reveal pcard--${esc(p.kind || 'plain')}">
+      <div class="pcard__big">${esc(p.big || '')}</div>
+      <div class="pcard__body"><h3>${esc(p.title)}</h3><p>${esc(p.text)}</p>${visual(p)}</div>
+    </article>`).join('');
+  }
+
   function offers(C) {
     $('#offersGrid').innerHTML = C.offers.map(o => {
       const isCert = !o.price;
@@ -339,16 +407,27 @@
     $('#revNext').onclick = () => tr.scrollBy({ left: step(), behavior: 'smooth' });
   }
 
-  function app(B) {
+  function app(B, C) {
+    $('#appList').innerHTML = (C.app_features || []).map(f => `<li>${esc(f)}</li>`).join('');
     const apple = '<svg width="22" height="22" viewBox="0 0 24 24" fill="currentColor"><path d="M16.4 12.6c0-2.6 2.1-3.8 2.2-3.9-1.2-1.8-3.1-2-3.7-2-1.6-.2-3.1.9-3.9.9-.8 0-2-.9-3.4-.9-1.7 0-3.3 1-4.2 2.6-1.8 3.1-.5 7.7 1.3 10.2.9 1.2 1.9 2.6 3.2 2.6 1.3-.1 1.8-.8 3.3-.8 1.6 0 2 .8 3.4.8 1.4 0 2.3-1.3 3.1-2.5 1-1.4 1.4-2.8 1.4-2.9-.1 0-2.7-1-2.7-4.1zM13.9 4.9c.7-.9 1.2-2 1.1-3.2-1 0-2.3.7-3 1.6-.7.8-1.2 2-1.1 3.1 1.1.1 2.3-.6 3-1.5z"/></svg>';
     const play = '<svg width="20" height="20" viewBox="0 0 24 24" fill="currentColor"><path d="M3.6 1.8 13.8 12 3.6 22.2c-.4-.2-.6-.6-.6-1.1V2.9c0-.5.2-.9.6-1.1zm11.6 11.6 2.6 2.6-11.5 6.5 8.9-9.1zm3.9-3.9 3 1.7c.8.5.8 1.2 0 1.7l-3 1.7-2.9-2.6 2.9-2.5zM6.3 1.5l11.5 6.5-2.6 2.6-8.9-9.1z"/></svg>';
     $('#appBtns').innerHTML =
       (B.app_ios ? `<a class="store" href="${url(B.app_ios)}" target="_blank" rel="noopener">${apple}<span><small>Загрузите в</small><b>App Store</b></span></a>` : '') +
       (B.app_android ? `<a class="store" href="${url(B.app_android)}" target="_blank" rel="noopener">${play}<span><small>Доступно в</small><b>Google Play</b></span></a>`
                      : `<span class="store store--soon">${play}<span><small>Android</small><b>запись на сайте</b></span></span>`);
-    const target = B.app_ios || B.booking_url;
-    try { new QRCode($('#qr'), { text: target, width: 300, height: 300, colorDark: '#0a0a0b', colorLight: '#ffffff' }); }
-    catch (e) { $('#qr').remove(); }
+    // QR для iPhone и для Android — переключатель под кодом
+    const qrs = [['iPhone', B.app_ios], ['Android', B.app_android]].filter(x => x[1]);
+    if (!qrs.length) qrs.push(['Запись', B.booking_url]);
+    const cap = $('.phone__cap');
+    const show = i => {
+      $('#qr').innerHTML = '';
+      try { new QRCode($('#qr'), { text: qrs[i][1], width: 300, height: 300, colorDark: '#0a0a0b', colorLight: '#ffffff' }); }
+      catch (e) { $('#qr').remove(); }
+      $$('button', cap).forEach((b, k) => b.classList.toggle('on', k === i));
+    };
+    cap.innerHTML = qrs.length > 1 ? qrs.map((q, i) => `<button type="button" data-q="${i}">${esc(q[0])}</button>`).join('') : 'Сканируйте, чтобы скачать';
+    cap.onclick = e => { const b = e.target.closest('[data-q]'); if (b) show(+b.dataset.q); };
+    show(/android/i.test(navigator.userAgent) && qrs.length > 1 ? 1 : 0);
   }
 
   function contacts(B) {
@@ -373,7 +452,12 @@
     };
     const close = () => { box.classList.remove('open'); box.setAttribute('aria-hidden', 'true'); document.body.style.overflow = ''; };
     document.addEventListener('click', e => {
-      if (e.target.closest('[data-book]')) { e.preventDefault(); open(B.booking_url); }
+      const bk = e.target.closest('[data-book]');
+      if (bk) {
+        e.preventDefault();
+        // если в калькуляторе выбраны услуги — любая кнопка записи переносит их и мастера в YClients
+        open(calcLink ? `${base}/personal/menu?o=${calcLink}` : B.booking_url);
+      }
       const m = e.target.closest('[data-master]');
       if (m && m.dataset.master) open(`${base}/personal/select-master?o=m${m.dataset.master}`);
       if (e.target.closest('[data-close]')) close();

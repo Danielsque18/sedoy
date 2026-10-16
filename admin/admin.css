@@ -17,7 +17,6 @@ button{cursor:pointer;background:none;border:0}
 .login{min-height:100vh;display:grid;place-items:center;padding:16px;background:repeating-linear-gradient(90deg,#0d0d0f 0 26px,#141417 26px 30px)}
 .login__box{width:min(380px,100%);background:var(--card);border:1px solid var(--line);border-radius:20px;padding:32px;display:flex;flex-direction:column;gap:18px}
 .login__err{color:var(--red);min-height:20px;font-size:14px}
-.login__demo{font-size:14px;color:var(--mute);background:#1d1d22;border-radius:10px;padding:10px 12px}
 label{display:flex;flex-direction:column;gap:6px;font-size:13px;color:var(--mute);font-weight:600}
 input,textarea,select{background:#0f0f12;border:1px solid var(--line);border-radius:10px;padding:10px 12px;font-size:15px;color:var(--txt);font-weight:500;width:100%}
 input:focus,textarea:focus,select:focus{outline:none;border-color:var(--led)}

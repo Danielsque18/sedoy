@@ -34,6 +34,7 @@
   <nav class="nav__links">
     <a href="#prices">Цены</a>
     <a href="#masters">Мастера</a>
+    <a href="#promo">Акции</a>
     <a href="#offers">Абонементы</a>
     <a href="#reviews">Отзывы</a>
     <a href="#contacts">Контакты</a>
@@ -64,13 +65,13 @@
   <div class="hero__scroll" aria-hidden="true"><span></span></div>
 </section>
 
-<!-- Настоящий зал: тот же свет, что на первом экране -->
-<section class="hall" id="hall">
-  <div class="hall__img"><img src="img/hall.jpg" alt="Зал барбершопа SEDOY: LED-рамки на потолке и неоновая вывеска" loading="lazy"></div>
+<!-- О нас: фото зала -->
+<section class="hall" id="about">
+  <div class="hall__img"><img src="img/hall.jpg" alt="Зал барбершопа SEDOY" loading="lazy"></div>
   <div class="hall__cap">
-    <p class="eyebrow">Это не графика</p>
-    <h2>Это наш<br>потолок</h2>
-    <p>Свет, который вы видели наверху, висит над креслами на 10 лет Октября, 43. Приходите посмотреть вживую.</p>
+    <p class="eyebrow">О нас</p>
+    <h2 id="aboutTitle"></h2>
+    <p id="aboutLead"></p>
   </div>
 </section>
 
@@ -83,9 +84,10 @@
   </div>
 </section>
 
-<!-- Манифест: слова «седеют» по мере прокрутки -->
+<!-- О нас, продолжение: слова «седеют» по мере прокрутки -->
 <section class="manifest">
-  <p class="manifest__text" id="manifest">Семь лет мы стрижём Омск. Горячее полотенце, кофе с конфетами в дорогу, PlayStation, пока ждёте, и мастер, который выслушает. Поэтому у нас больше пятисот пятидесяти отзывов и средняя оценка пять.</p>
+  <p class="manifest__text" id="manifest"></p>
+  <p class="manifest__more" id="aboutText"></p>
 </section>
 
 <!-- Цены + калькулятор -->
@@ -94,7 +96,7 @@
     <div class="sec-head">
       <p class="eyebrow">Цены и калькулятор</p>
       <h2>Соберите визит —<br>увидите итог сразу</h2>
-      <p class="sec-head__note">Выберите мастера и нажмите на услуги. Цены из нашей онлайн-записи.</p>
+      <p class="sec-head__note">Выберите мастера и отметьте услуги — в онлайн-записи они уже будут выбраны, останется только время.</p>
     </div>
 
     <div class="levels" id="levels" role="tablist" aria-label="Мастер"></div>
@@ -102,6 +104,7 @@
     <div class="calc">
       <div class="calc__menu">
         <div class="groups" id="groups"></div>
+        <div class="calc__photo led-frame" id="calcPhoto"><span class="calc__cap" id="calcCap"></span></div>
         <ul class="svc" id="svcList"></ul>
       </div>
       <aside class="ticket" id="ticket">
@@ -150,6 +153,17 @@
   </div>
 </section>
 
+<!-- Акции -->
+<section class="promo" id="promo">
+  <div class="wrap">
+    <div class="sec-head">
+      <p class="eyebrow">Акции</p>
+      <h2>Приятнее<br>с каждым визитом</h2>
+    </div>
+    <div class="promo__grid" id="promoGrid"></div>
+  </div>
+</section>
+
 <!-- Абонементы и сертификаты -->
 <section class="offers" id="offers">
   <div class="wrap">
@@ -187,8 +201,9 @@
   <div class="wrap app__inner led-frame">
     <div class="app__text">
       <p class="eyebrow">Приложение SEDOY</p>
-      <h2>Запись<br>в два касания</h2>
-      <p>Ваши визиты, любимый мастер, кешбэк и абонементы — в приложении барбершопа. Наведите камеру на код или нажмите кнопку.</p>
+      <h2>Барбершоп<br>в телефоне</h2>
+      <p>Наведите камеру на код или нажмите кнопку. В приложении можно:</p>
+      <ul class="app__list" id="appList"></ul>
       <div class="app__btns" id="appBtns"></div>
     </div>
     <div class="phone">
@@ -225,7 +240,6 @@
   <div class="wrap foot__inner">
     <span class="foot__logo">SEDOY</span>
     <span>© <span id="year"></span> Барбершоп SEDOY, Омск</span>
-    <a href="admin/index.html" class="foot__admin" id="footAdmin" hidden>Вход для администратора</a>
     <a href="https://danielsque18.github.io/portfolio/" class="foot__credit" target="_blank" rel="noopener">Сайт — Даниил Демьянов</a>
   </div>
 </footer>
@@ -247,11 +261,6 @@
 </div>
 
 <a class="owner-chip" id="ownerChip" hidden>✎ Редактировать сайт</a>
-
-<div class="demo-chip" id="demoChip" hidden>
-  <span>Демо-версия</span>
-  <a href="admin/index.html">Попробовать админку →</a>
-</div>
 
 <div class="stoast" id="stoast" role="status"></div>
 
