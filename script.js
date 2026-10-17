@@ -6,6 +6,10 @@
   const url = u => /^(https?:\/\/|tel:|mailto:)/i.test(String(u || '').trim()) ? esc(u) : '#';
   const tel = p => 'tel:' + String(p).replace(/[^\d+]/g, '');
   const DEMO_KEY = 'sedoy_demo_content';
+  // склонение: 1 оценка, 2 оценки, 5 оценок
+  const pl = (n, f) => { n = Math.abs(parseInt(String(n).replace(/\D/g, ''), 10) || 0) % 100; const d = n % 10; return n > 10 && n < 20 ? f[2] : d === 1 ? f[0] : d >= 2 && d <= 4 ? f[1] : f[2]; };
+  // буквы SEDOY из их логотипа (SEDOY_logotype-black-RU.pdf)
+  const NEON_LETTERS = ["M56.62 45.29H45.3C42.13 45.29 39.45 46.39 37.26 48.58 35.07 50.77 33.97 53.45 33.97 56.62V79.27C33.97 82.44 35.07 85.12 37.26 87.31 39.45 89.5 42.13 90.59 45.3 90.59H56.62V113.24H45.3V101.91H33.97V113.24C33.97 116.41 35.07 119.09 37.26 121.28 39.45 123.47 42.13 124.56 45.3 124.56H56.62C59.79 124.56 62.47 123.47 64.66 121.28 66.85 119.09 67.95 116.41 67.95 113.24V90.59C67.95 87.42 66.85 84.74 64.66 82.55 62.47 80.36 59.79 79.27 56.62 79.27H45.3V56.62H56.62V67.94H67.95V56.62C67.95 53.45 66.85 50.77 64.66 48.58 62.47 46.39 59.79 45.29 56.62 45.29", "M79.27 124.56H113.24V113.24H90.59V90.59H107.58V79.27H90.59V56.62H113.24V45.29H79.27Z", "M147.21 113.24H135.89V56.62H147.21ZM147.21 45.29H124.56V124.56H147.21C150.38 124.56 153.06 123.47 155.25 121.28 157.44 119.09 158.54 116.41 158.54 113.24V56.62C158.54 53.45 157.44 50.77 155.25 48.58 153.06 46.39 150.38 45.29 147.21 45.29", "M192.51 113.24H181.18V56.62H192.51ZM192.51 45.29H181.18C178.01 45.29 175.33 46.39 173.14 48.58 170.95 50.77 169.86 53.45 169.86 56.62V113.24C169.86 116.41 170.95 119.09 173.14 121.28 175.33 123.47 178.01 124.56 181.18 124.56H192.51C195.68 124.56 198.36 123.47 200.55 121.28 202.74 119.09 203.83 116.41 203.83 113.24V56.62C203.83 53.45 202.74 50.77 200.55 48.58 198.36 46.39 195.68 45.29 192.51 45.29", "M240.13 45.28 234.28 70.6 232.25 84.89H232.06L230.02 70.6 224.17 45.28H212.53L226.49 105.7V124.56H237.81V105.71L251.74 45.28Z"];
 
   // В демо админка сохраняет черновик в браузере — сайт показывает его.
   async function loadContent() {
@@ -37,7 +41,9 @@
     const B = C.brand, S = C.stats;
     const bind = {
       years: B.years, tagline: B.tagline, address: B.address, hours: B.hours,
-      rating: S.rating, ratings_count: S.ratings_count, reviews_count: S.reviews_count, clients: S.clients || '', parking: B.parking || ''
+      rating: S.rating, ratings_count: S.ratings_count, reviews_count: S.reviews_count, clients: S.clients || '', parking: B.parking || '',
+      years_word: pl(B.years, ['год', 'года', 'лет']), ratings_word: pl(S.ratings_count, ['оценка', 'оценки', 'оценок']),
+      reviews_word: pl(S.reviews_count, ['отзыв', 'отзыва', 'отзывов']), yc_word: pl(S.yc_ratings, ['оценка', 'оценки', 'оценок'])
     };
     $$('[data-bind]').forEach(el => {
       const k = el.dataset.bind;
@@ -64,6 +70,8 @@
     reviews(C);
     app(B, C);
     contacts(B);
+    cookies(B);
+    backgrounds(C);
     booking(B);
     reveal();
   }
@@ -119,13 +127,13 @@
     const t0 = performance.now();
     (function boot() { frame(); if (performance.now() - t0 < 3200) requestAnimationFrame(boot); })();
 
-    const word = 'SEDOY';
+    // буквы фирменного логотипа SEDOY (контуры из их PDF), каждая загорается отдельно
     const neon = $('#neon');
-    neon.innerHTML = [...word].map(ch => `<span>${ch}</span>`).join('');
-    $$('span', neon).forEach((s, i) => setTimeout(() => flicker(s, 'lit'), 900 + i * 230 + Math.random() * 200));
+    neon.innerHTML = `<svg viewBox="30 40 226 90" fill-rule="evenodd">${NEON_LETTERS.map(d => `<path d="${d}"/>`).join('')}</svg>`;
+    $$('path', neon).forEach((s, i) => setTimeout(() => flicker(s, 'lit'), 900 + i * 230 + Math.random() * 200));
     // буква «O» иногда моргает, как настоящая вывеска
     setInterval(() => {
-      const s = $$('span', neon)[3]; if (!s) return;
+      const s = $$('path', neon)[3]; if (!s) return;
       s.classList.remove('lit'); setTimeout(() => s.classList.add('lit'), 90);
       setTimeout(() => s.classList.remove('lit'), 180); setTimeout(() => s.classList.add('lit'), 260);
     }, 6500);
@@ -179,17 +187,7 @@
     $('#aboutTitle').textContent = A.title || '';
     $('#aboutLead').textContent = A.lead || '';
     $('#aboutText').textContent = A.text || '';
-    const p = $('#manifest');
-    const hl = /^(уют|тепл|дружеск|музык|кофе|ча[ея]|забот|вернуться|вновь)/i;
-    p.innerHTML = String(A.manifest || '').trim().split(/\s+/).map(w => `<span class="w${hl.test(w) ? ' hl' : ''}">${esc(w)}</span> `).join('');
-    const ws = $$('.w', p);
-    const on = () => {
-      const r = p.getBoundingClientRect();
-      const prog = Math.min(1, Math.max(0, (innerHeight * .85 - r.top) / (r.height + innerHeight * .35)));
-      const k = Math.round(prog * ws.length);
-      ws.forEach((w, i) => w.classList.toggle('on', i < k));
-    };
-    addEventListener('scroll', on, { passive: true }); on();
+    $('#manifest').innerHTML = String(A.manifest || '').trim().split(/\s+/).map(w => `<span class="w">${esc(w)}</span> `).join('');
   }
 
   /* ---------- Цены + калькулятор ---------- */
@@ -436,8 +434,41 @@
       ['ВКонтакте', B.vk], ['WhatsApp', B.whatsapp]
     ].filter(x => x[1]);
     $('#socials').innerHTML = s.map(([n, u]) => `<a href="${url(u)}" target="_blank" rel="noopener">${esc(n)}</a>`).join('');
-    const ll = `${B.lon},${B.lat}`;
-    $('#map').innerHTML = `<iframe src="https://yandex.ru/map-widget/v1/?ll=${ll}&z=16&pt=${ll},pm2wtm" title="SEDOY на карте" loading="lazy" allowfullscreen></iframe>`;
+    // карта Яндекса ставит cookie — грузим её только после согласия (152-ФЗ), до этого заглушка
+    $('#map').innerHTML = `<div class="map-stub"><b>${esc(B.address)}</b><p>Карта Яндекса загрузится после согласия на cookie.</p><button class="btn btn--ghost btn--sm" type="button" id="mapShow">Показать карту</button></div>`;
+    $('#mapShow').onclick = () => setConsent('all');
+    if (getConsent() === 'all') showMap();
+    function showMap() {
+      const ll = `${B.lon},${B.lat}`;
+      $('#map').innerHTML = `<iframe src="https://yandex.ru/map-widget/v1/?ll=${ll}&z=16&pt=${ll},pm2wtm" title="SEDOY на карте" loading="lazy" allowfullscreen></iframe>`;
+    }
+    contacts.showMap = showMap;
+  }
+
+  /* ---------- Cookie и согласие (152-ФЗ): карта и Метрика — только после «Принять» ---------- */
+  const CONSENT_KEY = 'sedoy_consent';
+  function getConsent() { try { return localStorage.getItem(CONSENT_KEY); } catch (e) { return null; } }
+  function setConsent(v) {
+    try { localStorage.setItem(CONSENT_KEY, v); } catch (e) {}
+    $('#cookie')?.classList.remove('show');
+    if (v === 'all') { contacts.showMap?.(); metrika(); }
+  }
+  let metrikaId = '';
+  function metrika() {
+    if (!/^\d{5,12}$/.test(metrikaId) || window.ym) return;
+    // стандартный код счётчика Яндекс Метрики
+    (function (m, e, t, r, i, k, a) { m[i] = m[i] || function () { (m[i].a = m[i].a || []).push(arguments); }; m[i].l = 1 * new Date(); k = e.createElement(t), a = e.getElementsByTagName(t)[0]; k.async = 1; k.src = r; a.parentNode.insertBefore(k, a); })(window, document, 'script', 'https://mc.yandex.ru/metrika/tag.js', 'ym');
+    window.ym(+metrikaId, 'init', { clickmap: true, trackLinks: true, accurateTrackBounce: true, webvisor: false });
+  }
+  function cookies(B) {
+    metrikaId = String(B.metrika_id || '').trim();
+    const c = getConsent();
+    if (c === 'all') { metrika(); return; }
+    if (c) return;
+    const box = $('#cookie'); if (!box) return;
+    setTimeout(() => box.classList.add('show'), 1200);
+    $('#cookieYes').onclick = () => setConsent('all');
+    $('#cookieNo').onclick = () => setConsent('min');
   }
 
   /* ---------- Запись: окно YClients прямо на сайте ---------- */
@@ -489,6 +520,23 @@
     }))).observe(document.body, { childList: true, subtree: true });
 
     console.log('%cSEDOY', 'font:700 42px Oswald,Impact,sans-serif;color:#eef5ff;text-shadow:0 0 12px #9cc0ff', '\nТерритория мужского стиля. Сайт сделан вручную, без конструкторов.');
+  }
+
+  /* ---------- Затемнённые фото на фоне блоков (меняются в админке → Фото) ---------- */
+  function backgrounds(C) {
+    const B = C.backgrounds || {};
+    const map = { about: '.manifest', masters: '#masters', reviews: '#reviews', contacts: '#contacts' };
+    for (const k in map) {
+      const sec = $(map[k]); if (!sec) continue;
+      sec.querySelector(':scope > .sbg')?.remove();
+      if (!B[k]) { sec.classList.remove('has-bg'); continue; }
+      const d = document.createElement('div');
+      d.className = 'sbg'; d.setAttribute('aria-hidden', 'true');
+      const i = document.createElement('i');
+      i.style.backgroundImage = `url("${String(B[k]).replace(/["\\()]/g, '')}")`;
+      d.append(i);
+      sec.prepend(d); sec.classList.add('has-bg');
+    }
   }
 
   function reveal() {

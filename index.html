@@ -20,17 +20,15 @@
 <meta name="twitter:card" content="summary_large_image">
 <link rel="preload" as="image" href="img/hall.jpg">
 <script type="application/ld+json">{"@context": "https://schema.org", "@type": "BarberShop", "name": "SEDOY барбершоп", "description": "Территория мужского стиля и безупречного сервиса", "address": {"@type": "PostalAddress", "streetAddress": "ул. 10 лет Октября, 43", "addressLocality": "Омск", "postalCode": "644024", "addressCountry": "RU"}, "geo": {"@type": "GeoCoordinates", "latitude": 54.985123, "longitude": 73.393324}, "telephone": "+7 901 263-51-97", "email": "sedoy_b24@mail.ru", "openingHours": "Mo-Su 10:00-21:00", "priceRange": "₽₽", "image": "img/og.jpg", "sameAs": ["https://vk.com/barbershop_sedoy", "https://t.me/barbershop_sedoy"]}</script>
-<link rel="preconnect" href="https://fonts.googleapis.com">
-<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-<link href="https://fonts.googleapis.com/css2?family=Oswald:wght@300;400;500;600;700&family=Manrope:wght@400;500;600;700&display=swap" rel="stylesheet">
-<link rel="stylesheet" href="style.css?v=20261016">
+<link href="fonts/fonts.css" rel="stylesheet">
+<link rel="stylesheet" href="style.css?v=20261017f">
 <script>window.SEDOY_DEMO = true;</script>
 </head>
 <body>
 
 <div class="progress" id="progress" aria-hidden="true"></div>
 <header class="nav" id="nav">
-  <a href="#top" class="nav__logo" aria-label="SEDOY">SEDOY<span>барбершоп</span></a>
+  <a href="#top" class="nav__logo"><img src="img/logo.svg" alt="SEDOY барбершоп" width="77" height="42"></a>
   <nav class="nav__links">
     <a href="#prices">Цены</a>
     <a href="#masters">Мастера</a>
@@ -49,7 +47,7 @@
   <svg class="hero__ceiling" id="ceiling" aria-hidden="true"></svg>
   <div class="hero__floor" aria-hidden="true"></div>
   <div class="hero__content">
-    <p class="hero__kicker"><span class="dot"></span> <span id="openNow">Омск</span> <span class="kicker__addr">· 10 лет Октября, 43</span> · <span data-bind="years"></span> лет</p>
+    <p class="hero__kicker"><span class="dot"></span> <span id="openNow">Омск</span> <span class="kicker__addr">· 10 лет Октября, 43</span> · <span data-bind="years"></span> <span data-bind="years_word"></span> с вами</p>
     <h1 class="neon" id="neon" aria-label="SEDOY"></h1>
     <p class="hero__lead" data-bind="tagline"></p>
     <div class="hero__actions">
@@ -59,7 +57,7 @@
     <a class="hero__rating" href="#reviews">
       <b data-bind="rating"></b>
       <span class="stars">★★★★★</span>
-      <span><span data-bind="ratings_count"></span> оценок в 2ГИС</span>
+      <span><span data-bind="ratings_count"></span> <span data-bind="ratings_word"></span> в 2ГИС</span>
     </a>
   </div>
   <div class="hero__scroll" aria-hidden="true"><span></span></div>
@@ -77,10 +75,10 @@
 
 <section class="numbers">
   <div class="wrap numbers__grid">
-    <div><b data-count="yc_ratings"></b><span>оценок в онлайн-записи</span></div>
+    <div><b data-count="yc_ratings"></b><span><span data-bind="yc_word"></span> в онлайн-записи</span></div>
     <div><b data-count="yc_five"></b><span>из них — пять звёзд</span></div>
     <div><b data-bind="clients"></b><span>клиентов уже у нас были</span></div>
-    <div><b data-bind="rating"></b><span>в 2ГИС, <span data-bind="ratings_count"></span> оценок</span></div>
+    <div><b data-bind="rating"></b><span>в 2ГИС, <span data-bind="ratings_count"></span> <span data-bind="ratings_word"></span></span></div>
   </div>
 </section>
 
@@ -128,7 +126,7 @@
     <div class="sec-head">
       <p class="eyebrow">Команда</p>
       <h2>Мастера, к которым<br>возвращаются</h2>
-      <p class="sec-head__note">Отзывы — из нашей онлайн-записи. Наведите на фото.</p>
+      <p class="sec-head__note">Отзывы — из нашей онлайн-записи.<span class="hover-only"> Наведите на фото.</span></p>
     </div>
     <div class="masters__grid" id="mastersGrid"></div>
   </div>
@@ -185,7 +183,7 @@
     <div class="reviews__top">
       <div class="bigrate">
         <b data-bind="rating"></b>
-        <div><span class="stars">★★★★★</span><span><span data-bind="ratings_count"></span> оценок · <span data-bind="reviews_count"></span> отзывов в 2ГИС</span></div>
+        <div><span class="stars">★★★★★</span><span><span data-bind="ratings_count"></span> <span data-bind="ratings_word"></span> · <span data-bind="reviews_count"></span> <span data-bind="reviews_word"></span> в 2ГИС</span></div>
       </div>
       <div class="reviews__nav">
         <button class="round" id="revPrev" aria-label="Назад">←</button>
@@ -202,7 +200,7 @@
     <div class="app__text">
       <p class="eyebrow">Приложение SEDOY</p>
       <h2>Барбершоп<br>в телефоне</h2>
-      <p>Наведите камеру на код или нажмите кнопку. В приложении можно:</p>
+      <p><span class="hover-only">Наведите камеру на код или нажмите кнопку. </span><span class="touch-only">Нажмите кнопку, чтобы скачать. </span>В приложении можно:</p>
       <ul class="app__list" id="appList"></ul>
       <div class="app__btns" id="appBtns"></div>
     </div>
@@ -238,8 +236,9 @@
 
 <footer class="foot">
   <div class="wrap foot__inner">
-    <span class="foot__logo">SEDOY</span>
+    <img class="foot__logo" src="img/logo.svg" alt="SEDOY" width="66" height="36">
     <span>© <span id="year"></span> Барбершоп SEDOY, Омск</span>
+    <a href="politika.html" class="foot__link">Политика конфиденциальности</a>
     <a href="https://danielsque18.github.io/portfolio/" class="foot__credit" target="_blank" rel="noopener">Сайт — Даниил Демьянов</a>
   </div>
 </footer>
@@ -264,8 +263,14 @@
 
 <div class="stoast" id="stoast" role="status"></div>
 
-<script src="https://cdnjs.cloudflare.com/ajax/libs/qrcodejs/1.0.0/qrcode.min.js" integrity="sha384-3zSEDfvllQohrq0PHL1fOXJuC/jSOO34H46t6UQfobFOmxE5BpjjaIJY5F2/bMnU" crossorigin="anonymous"></script>
-<script src="data/content.js?v=20261016"></script>
-<script src="script.js?v=20261016"></script>
+<!-- Cookie: согласие по 152-ФЗ -->
+<div class="cookie" id="cookie" role="dialog" aria-label="Cookie">
+  <p>Используем cookie и сервисы Яндекса (карта, статистика). Нажимая «Принять», вы соглашаетесь с <a href="politika.html">политикой конфиденциальности</a>.</p>
+  <div class="cookie__btns"><button class="btn btn--led btn--sm" id="cookieYes" type="button">Принять</button><button class="btn btn--ghost btn--sm" id="cookieNo" type="button">Отказаться</button></div>
+</div>
+
+<script src="lib/qrcode.min.js"></script>
+<script src="data/content.js?v=20261017f"></script>
+<script src="script.js?v=20261017f"></script>
 </body>
 </html>

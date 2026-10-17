@@ -263,12 +263,24 @@
         d.ondragleave = () => d.classList.remove('over');
         d.ondrop = async e => { e.preventDefault(); d.classList.remove('over'); for (const f of e.dataTransfer.files) await add(f); };
         async function add(f) { const p = await uploadImage(f); if (p) { C.gallery.push({ src: p, alt: '' }); render(); markDirty(); } }
+        $$('[data-bg]').forEach(b => b.onclick = async () => {
+          const k = b.dataset.bg;
+          if (b.dataset.off) { delete C.backgrounds[k]; render(); markDirty(); return; }
+          const p = await uploadImage(await pickImage()); if (p) { C.backgrounds[k] = p; render(); markDirty(); }
+        });
       };
+      C.backgrounds ||= {};
+      const BG = { about: 'О нас (крупный текст)', masters: 'Мастера', reviews: 'Отзывы', contacts: 'Контакты' };
       return `<h1>Фото</h1><p class="lead">Лента фото на сайте. Перетащите снимки сюда или нажмите на рамку. Большие фото сожмутся сами.</p>
         <div class="gal">${C.gallery.map((g, i) => `<div class="card">
           <div class="ph"><img src="${esc(imgSrc(g.src))}" alt=""></div>
           ${field('Подпись', `gallery.${i}.alt`)}${tools('gallery', i)}</div>`).join('')}
-          <div class="drop" id="drop">+ Добавить фото<br><span class="muted">или перетащите сюда</span></div></div>`;
+          <div class="drop" id="drop">+ Добавить фото<br><span class="muted">или перетащите сюда</span></div></div>
+        <h1 style="margin-top:40px">Фоны блоков</h1><p class="lead">Фото за текстом в четырёх блоках. На сайте оно сильно затемняется, чтобы текст читался.</p>
+        <div class="gal">${Object.entries(BG).map(([k, name]) => `<div class="card">
+          <div class="ph">${C.backgrounds[k] ? `<img src="${esc(imgSrc(C.backgrounds[k]))}" alt="">` : '<span class="muted" style="display:grid;place-items:center;height:100%">чёрный фон</span>'}</div>
+          <p><b>${name}</b></p>
+          <div class="tools"><button class="btn btn--sm" data-bg="${k}">${C.backgrounds[k] ? 'Сменить' : 'Добавить'}</button>${C.backgrounds[k] ? `<button class="btn btn--sm btn--ghost" data-bg="${k}" data-off="1">Убрать</button>` : ''}</div></div>`).join('')}</div>`;
     },
 
     offers() {
@@ -316,6 +328,7 @@
 
     contacts() {
       bindAfter = () => {};
+      C.legal ||= { operator: '', inn: '', ogrn: '', address: '', email: '', date: '' };
       const b = 'brand';
       return `<h1>Контакты</h1><p class="lead">Всё, что видно в шапке, в подвале и на карте.</p>
         <div class="card"><div class="grid2">
@@ -331,13 +344,19 @@
         </div></div>
         <div class="card"><p class="muted" style="margin-bottom:10px">О нас</p>
           ${field('Заголовок', 'about.title')}<div style="height:10px"></div>${field('Текст на фото зала', 'about.lead', { area: true })}
-          <div style="height:10px"></div>${field('Крупный текст (слова светлеют при прокрутке)', 'about.manifest', { area: true })}
+          <div style="height:10px"></div>${field('Крупный текст', 'about.manifest', { area: true })}
           <div style="height:10px"></div>${field('Текст под ним', 'about.text', { area: true })}</div>
         <div class="card"><p class="muted" style="margin-bottom:10px">Что можно в приложении (каждый пункт с новой строки)</p>
           <textarea data-lines="app_features" rows="8">${esc((C.app_features || []).join('\n'))}</textarea></div>
         <div class="card"><p class="muted" style="margin-bottom:10px">Рейтинг и цифры на сайте</p><div class="grid3">
           ${field('Оценка в 2ГИС', 'stats.rating')}${field('Оценок в 2ГИС', 'stats.ratings_count', { num: true })}${field('Отзывов в 2ГИС', 'stats.reviews_count', { num: true })}
           ${field('Оценок в YClients', 'stats.yc_ratings', { num: true })}${field('Из них пятёрок', 'stats.yc_five', { num: true })}${field('Клиентов (текстом)', 'stats.clients', { ph: '6 500+' })}
+        </div></div>
+        <div class="card"><p class="muted" style="margin-bottom:10px">Юридические данные — для страницы «Политика конфиденциальности» (152-ФЗ). Заполните до запуска сайта.</p><div class="grid2">
+          ${field('Владелец (ИП или ООО полностью)', 'legal.operator', { ph: 'например: ИП Фамилия Имя Отчество' })}${field('ИНН', 'legal.inn')}
+          ${field('ОГРН / ОГРНИП', 'legal.ogrn')}${field('Юридический адрес', 'legal.address')}
+          ${field('Почта для вопросов о данных', 'legal.email')}${field('Дата редакции политики', 'legal.date', { ph: '17.10.2026' })}
+          ${field('Номер счётчика Яндекс Метрики', 'brand.metrika_id', { ph: 'только цифры, если подключена' })}
         </div></div>`;
     },
 
