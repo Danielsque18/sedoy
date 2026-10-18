@@ -389,6 +389,7 @@
           <textarea data-lines="app_features" rows="8">${esc((C.app_features || []).join('\n'))}</textarea></div>
         <div class="card"><p class="muted" style="margin-bottom:10px">Рейтинг и цифры на сайте</p><div class="grid3">
           ${field('Оценка в 2ГИС', 'stats.rating')}${field('Оценок в 2ГИС', 'stats.ratings_count', { num: true })}${field('Отзывов в 2ГИС', 'stats.reviews_count', { num: true })}
+          ${field('Оценка в Яндексе', 'stats.yandex_rating')}${field('Оценок в Яндексе', 'stats.yandex_count', { num: true })}${field('Отзывов в Яндексе', 'stats.yandex_reviews', { num: true })}
           ${field('Оценок в YClients', 'stats.yc_ratings', { num: true })}${field('Из них пятёрок', 'stats.yc_five', { num: true })}${field('Клиентов (текстом)', 'stats.clients', { ph: '6 500+' })}
         </div></div>
         <div class="card"><p class="muted" style="margin-bottom:10px">Юридические данные — для страницы «Политика конфиденциальности» (152-ФЗ). Заполните до запуска сайта.</p><div class="grid2">

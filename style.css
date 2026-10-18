@@ -298,6 +298,7 @@ h2{font-size:clamp(32px,4.4vw,62px)}
 .bigrate{display:flex;align-items:center;gap:20px}
 .bigrate b{font:600 clamp(64px,7.5vw,100px)/.8 var(--display);color:var(--white)}
 .bigrate div{display:flex;flex-direction:column;gap:6px;color:var(--mute);font-size:14px}
+.bigrate__ya[hidden],.bigrate [hidden]{display:none}
 .reviews__nav{display:flex;gap:10px}
 .reviews__track{display:flex;gap:16px;overflow-x:auto;scroll-snap-type:x mandatory;scrollbar-width:none;padding-bottom:4px}
 .reviews__track::-webkit-scrollbar{display:none}

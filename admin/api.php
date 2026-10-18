@@ -12,6 +12,7 @@ const MAX_JSON = 2 * 1024 * 1024;
 const MAX_UPLOAD = 12 * 1024 * 1024;
 const MAX_SIDE = 1600;
 
+date_default_timezone_set('Asia/Omsk'); // время сохранений и резервных копий — омское
 header('Content-Type: application/json; charset=utf-8');
 header('X-Content-Type-Options: nosniff');
 header('Cache-Control: no-store');
@@ -46,10 +47,12 @@ function write_password(string $plain): void {
 function ensure_dirs(): void {
     foreach ([BACKUPS, PRIVATE_DIR] as $d) {
         if (!is_dir($d)) mkdir($d, 0755, true);
-        if (!file_exists("$d/.htaccess")) file_put_contents("$d/.htaccess", "Require all denied\nDeny from all\n");
+        // закрыть папку и на новом, и на старом Apache (Deny без нужного модуля даёт ошибку 500)
+        if (!file_exists("$d/.htaccess")) file_put_contents("$d/.htaccess", "<IfModule mod_authz_core.c>\nRequire all denied\n</IfModule>\n<IfModule !mod_authz_core.c>\nOrder allow,deny\nDeny from all\n</IfModule>\n");
     }
     if (!is_dir(UPLOADS)) mkdir(UPLOADS, 0755, true);
-    if (!file_exists(UPLOADS . '/.htaccess')) file_put_contents(UPLOADS . '/.htaccess', "php_flag engine off\nRemoveHandler .php .phtml .php5 .php7 .phar\n<FilesMatch \"\\.(?!jpe?g$)[^.]+$\">\nRequire all denied\n</FilesMatch>\n");
+    // в папке загрузок отдаём только .jpg. php_flag — только если PHP работает модулем Apache, иначе он сам ломает папку (ошибка 500)
+    if (!file_exists(UPLOADS . '/.htaccess')) file_put_contents(UPLOADS . '/.htaccess', "<IfModule mod_php.c>\nphp_flag engine off\n</IfModule>\n<IfModule mod_php7.c>\nphp_flag engine off\n</IfModule>\nRemoveHandler .php .phtml .php5 .php7 .php8 .phar\n<FilesMatch \"\\.(?!jpe?g$)[^.]+$\">\n<IfModule mod_authz_core.c>\nRequire all denied\n</IfModule>\n</FilesMatch>\n");
 }
 
 // ---- защита от подбора пароля: 8 ошибок с одного IP → пауза 15 минут
@@ -143,8 +146,10 @@ case 'restore':
     $body = json_decode((string)file_get_contents('php://input'), true) ?: [];
     $name = (string)($body['name'] ?? '');
     if (!preg_match('/^content-[\d_-]+\.json$/', $name) || !is_file(BACKUPS . "/$name")) fail('Копия не найдена');
+    $data = json_decode((string)file_get_contents(BACKUPS . "/$name"), true);
+    if (!is_array($data) || !isset($data['brand'], $data['services'], $data['masters'])) fail('Копия повреждена, ничего не изменено');
     copy(CONTENT, BACKUPS . '/content-' . date('Y-m-d_H-i-s') . '.json');
-    write_content(json_decode((string)file_get_contents(BACKUPS . "/$name"), true));
+    write_content($data);
     out(['ok' => true]);
 
 case 'password':

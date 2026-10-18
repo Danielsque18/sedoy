@@ -48,8 +48,12 @@
       years: B.years, tagline: B.tagline, address: B.address, hours: B.hours,
       rating: S.rating, ratings_count: S.ratings_count, reviews_count: S.reviews_count, clients: S.clients || '', parking: B.parking || '',
       years_word: pl(B.years, ['год', 'года', 'лет']), ratings_word: pl(S.ratings_count, ['оценка', 'оценки', 'оценок']),
-      reviews_word: pl(S.reviews_count, ['отзыв', 'отзыва', 'отзывов']), yc_word: pl(S.yc_ratings, ['оценка', 'оценки', 'оценок'])
+      reviews_word: pl(S.reviews_count, ['отзыв', 'отзыва', 'отзывов']), yc_word: pl(S.yc_ratings, ['оценка', 'оценки', 'оценок']),
+      yandex_rating: S.yandex_rating || '', yandex_count: S.yandex_count || '', yandex_reviews: S.yandex_reviews || '',
+      yandex_word: pl(S.yandex_count, ['оценка', 'оценки', 'оценок']), yandex_rev_word: pl(S.yandex_reviews, ['отзыв', 'отзыва', 'отзывов'])
     };
+    // строку рейтинга Яндекса прячем, если цифры в админке не заполнены
+    $$('[data-show]').forEach(el => { el.hidden = !bind[el.dataset.show]; });
     $$('[data-bind]').forEach(el => {
       const k = el.dataset.bind;
       if (k === 'phone-link') { el.href = tel(B.phone); if (!el.classList.contains('mbar__call')) el.textContent = B.phone; }
