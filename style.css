@@ -165,6 +165,8 @@ h2{font-size:clamp(32px,4.4vw,62px)}
   -webkit-mask:radial-gradient(circle 9px at 0 108px,#0000 98%,#000) left/51% 100% no-repeat,radial-gradient(circle 9px at 100% 108px,#0000 98%,#000) right/51% 100% no-repeat;
   mask:radial-gradient(circle 9px at 0 108px,#0000 98%,#000) left/51% 100% no-repeat,radial-gradient(circle 9px at 100% 108px,#0000 98%,#000) right/51% 100% no-repeat}
 .ticket__head{display:flex;justify-content:space-between;align-items:baseline;font:700 30px/1 var(--display);letter-spacing:.02em;padding-bottom:14px;border-bottom:2px solid #151515}
+.ticket__logo{display:block;width:84px;height:auto;color:#151515}
+.ticket__head{align-items:flex-end}
 .ticket__no{font:500 13px/1 var(--body);letter-spacing:.1em;color:#666}
 .ticket__level{font-size:13px;color:#555;padding:16px 0 12px;border-bottom:1px dashed #b9b7b0}
 .ticket__items{list-style:none;min-height:80px;padding:10px 0;border-bottom:1px dashed #b9b7b0;font-size:14px}

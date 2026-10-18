@@ -187,6 +187,7 @@
     $('#aboutTitle').textContent = A.title || '';
     $('#aboutLead').textContent = A.lead || '';
     $('#aboutText').textContent = A.text || '';
+    if (A.img) $('.hall__img img').src = A.img;
     $('#manifest').innerHTML = String(A.manifest || '').trim().split(/\s+/).map(w => `<span class="w">${esc(w)}</span> `).join('');
   }
 

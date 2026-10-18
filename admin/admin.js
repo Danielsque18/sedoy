@@ -268,7 +268,9 @@
           if (b.dataset.off) { delete C.backgrounds[k]; render(); markDirty(); return; }
           const p = await uploadImage(await pickImage()); if (p) { C.backgrounds[k] = p; render(); markDirty(); }
         });
+        $('#aboutImg').onclick = async () => { const p = await uploadImage(await pickImage()); if (p) { C.about.img = p; render(); markDirty(); } };
       };
+      C.about ||= {};
       C.backgrounds ||= {};
       const BG = { about: 'О нас (крупный текст)', masters: 'Мастера', reviews: 'Отзывы', contacts: 'Контакты' };
       return `<h1>Фото</h1><p class="lead">Лента фото на сайте. Перетащите снимки сюда или нажмите на рамку. Большие фото сожмутся сами.</p>
@@ -276,6 +278,11 @@
           <div class="ph"><img src="${esc(imgSrc(g.src))}" alt=""></div>
           ${field('Подпись', `gallery.${i}.alt`)}${tools('gallery', i)}</div>`).join('')}
           <div class="drop" id="drop">+ Добавить фото<br><span class="muted">или перетащите сюда</span></div></div>
+        <h1 style="margin-top:40px">Фото зала в блоке «О нас»</h1><p class="lead">Большое фото сразу после первого экрана. Фото в блоке «Больше, чем стрижка» меняются во вкладке «Сервис».</p>
+        <div class="gal"><div class="card">
+          <div class="ph"><img src="${esc(imgSrc(C.about.img || 'img/hall-wall.jpg'))}" alt=""></div>
+          <p><b>О нас</b></p>
+          <div class="tools"><button class="btn btn--sm" id="aboutImg">Сменить</button></div></div></div>
         <h1 style="margin-top:40px">Фоны блоков</h1><p class="lead">Фото за текстом в четырёх блоках. На сайте оно сильно затемняется, чтобы текст читался.</p>
         <div class="gal">${Object.entries(BG).map(([k, name]) => `<div class="card">
           <div class="ph">${C.backgrounds[k] ? `<img src="${esc(imgSrc(C.backgrounds[k]))}" alt="">` : '<span class="muted" style="display:grid;place-items:center;height:100%">чёрный фон</span>'}</div>
