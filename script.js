@@ -20,7 +20,12 @@
     } catch (e) {}
     base ||= window.SEDOY_SEED; // открыли файлом без сервера
     if (window.SEDOY_DEMO) {
-      try { const d = localStorage.getItem(DEMO_KEY); if (d) return upgradeDraft(JSON.parse(d), base); } catch (e) {}
+      try {
+        const d = JSON.parse(localStorage.getItem(DEMO_KEY) || 'null');
+        // черновик со старой версии сайта сбрасываем, иначе он закроет свежие правки (фото, тексты, реквизиты)
+        if (d && base && d.rev !== base.rev) localStorage.removeItem(DEMO_KEY);
+        else if (d) return upgradeDraft(d, base);
+      } catch (e) {}
     }
     return base;
   }
@@ -156,15 +161,23 @@
 
   /* ---------- Настоящий зал: фото «наезжает» и светлеет при прокрутке ---------- */
   function hall() {
-    const sec = $('#about'), img = $('.hall__img img', sec);
-    const on = () => {
+    // в новых браузерах анимацию ведёт CSS (animation-timeline), скрипт не нужен
+    if (window.CSS && CSS.supports('animation-timeline: view()')) return;
+    const sec = $('#about'), box = $('.hall__img', sec), img = $('img', box);
+    let busy = false;
+    const draw = () => {
+      busy = false;
       const r = sec.getBoundingClientRect();
-      const p = Math.min(1, Math.max(0, -r.top / (r.height - innerHeight)));
-      img.style.setProperty('--hs', (1.25 - p * .25).toFixed(3));
-      img.style.setProperty('--hb', (.5 + Math.min(p * 1.6, 1) * .45).toFixed(3));
+      // высоту берём у самого блока, а не у окна: на iPhone окно «прыгает», когда прячется адресная строка
+      const p = Math.min(1, Math.max(0, -r.top / (r.height - box.offsetHeight)));
+      img.style.setProperty('--hs', (1.25 - p * .25).toFixed(4));
+      box.style.setProperty('--hd', (.5 - Math.min(p * 1.6, 1) * .45).toFixed(3));
     };
-    addEventListener('scroll', on, { passive: true }); on();
+    // не чаще одного раза за кадр
+    addEventListener('scroll', () => { if (!busy) { busy = true; requestAnimationFrame(draw); } }, { passive: true });
+    draw();
   }
+
 
   /* ---------- Цифры считаются, когда попадают на экран ---------- */
   function counters(S) {
@@ -223,6 +236,13 @@
       picked.has(s.name) ? picked.delete(s.name) : picked.set(s.name, s);
       draw();
     };
+    // выбор с клавиатуры: Tab до услуги, пробел или Enter
+    $('#svcList').onkeydown = e => {
+      if (e.key !== ' ' && e.key !== 'Enter') return;
+      const li = e.target.closest('li'); if (!li) return;
+      e.preventDefault(); const i = li.dataset.i; li.click();
+      $(`#svcList li[data-i="${i}"]`)?.focus();
+    };
     $('#ticketClear').onclick = () => { picked.clear(); draw(); };
 
     // большое фото над списком: фото вкладки, при наведении или выборе — фото услуги, если оно есть
@@ -249,7 +269,7 @@
         if (s.group !== group) return '';
         const p = priceOf(s);
         const na = p == null;
-        return `<li data-i="${i}" class="${picked.has(s.name) ? 'sel' : ''} ${na ? 'na' : ''}">
+        return `<li data-i="${i}" class="${picked.has(s.name) ? 'sel' : ''} ${na ? 'na' : ''}" role="checkbox" aria-checked="${picked.has(s.name)}" aria-disabled="${na}" tabindex="${na ? -1 : 0}">
           <span class="svc__chk">✓</span>
           <span class="svc__name">${esc(s.name)}${s.desc ? `<span class="svc__desc">${esc(s.desc)}</span>` : ''}</span>
           <span class="svc__price${bump ? ' bump' : ''}">${na ? '—' : rub(p)}</span></li>`;
@@ -301,7 +321,7 @@
   function masters(C, B) {
     const plural = n => n % 10 === 1 && n % 100 !== 11 ? 'отзыв' : (n % 10 >= 2 && n % 10 <= 4 && (n % 100 < 10 || n % 100 >= 20) ? 'отзыва' : 'отзывов');
     $('#mastersGrid').innerHTML = C.masters.map(m => `
-      <article class="mcard reveal" tabindex="0" data-master="${esc(m.yc_id || '')}">
+      <article class="mcard reveal" tabindex="0" role="button" aria-label="${esc(m.name)}, ${esc(m.role)} — записаться" data-master="${esc(m.yc_id || '')}">
         <div class="mcard__ph led-frame">
           <img src="${esc(m.photo)}" alt="${esc(m.name)}, ${esc(m.role)}" loading="lazy">
           ${m.quote ? `<p class="mcard__quote">«${esc(m.quote)}»<small>— ${esc(m.quote_author || 'клиент')}, отзыв</small></p>` : (m.bio ? `<p class="mcard__quote">${esc(m.bio)}</p>` : '')}
@@ -318,11 +338,13 @@
   /* ---------- Сервис: фото слева меняется под пункт, который сейчас в центре экрана ---------- */
   function perks(C) {
     const list = C.perks.map(p => typeof p === 'string' ? { title: p, text: '', img: '' } : p);
+    // точка, которая всегда остаётся в кадре (ставится в админке нажатием на фото)
+    const pos = p => /^\d{1,3}(\.\d+)?% \d{1,3}(\.\d+)?%$/.test(p.pos || '') ? ` style="object-position:${p.pos}"` : '';
     $('#perks').innerHTML = list.map((p, i) => `<li data-i="${i}">
-      ${p.img ? `<img src="${esc(p.img)}" alt="" loading="lazy">` : ''}
+      ${p.img ? `<img src="${esc(p.img)}" alt="" loading="lazy"${pos(p)}>` : ''}
       <h3>${esc(p.title)}</h3>${p.text ? `<p>${esc(p.text)}</p>` : ''}</li>`).join('');
     const frame = $('#perksFrame');
-    frame.innerHTML = list.map((p, i) => p.img ? `<img src="${esc(p.img)}" alt="${esc(p.title)}" data-i="${i}" loading="lazy">` : '').join('');
+    frame.innerHTML = list.map((p, i) => p.img ? `<img src="${esc(p.img)}" alt="${esc(p.title)}" data-i="${i}" loading="lazy"${pos(p)}>` : '').join('');
     const items = $$('#perks li');
     let cur = -1;
     const pick = () => {
@@ -450,7 +472,10 @@
   const CONSENT_KEY = 'sedoy_consent';
   function getConsent() { try { return localStorage.getItem(CONSENT_KEY); } catch (e) { return null; } }
   function setConsent(v) {
+    const was = getConsent();
     try { localStorage.setItem(CONSENT_KEY, v); } catch (e) {}
+    // отозвали согласие — перезагружаем, чтобы карта и Метрика выгрузились
+    if (was === 'all' && v !== 'all') { location.reload(); return; }
     $('#cookie')?.classList.remove('show');
     if (v === 'all') { contacts.showMap?.(); metrika(); }
   }
@@ -463,13 +488,15 @@
   }
   function cookies(B) {
     metrikaId = String(B.metrika_id || '').trim();
+    const box = $('#cookie'); if (!box) return;
+    $('#cookieYes').onclick = () => setConsent('all');
+    $('#cookieNo').onclick = () => setConsent('min');
+    // «Настройки cookie» в подвале — открыть плашку снова и изменить выбор
+    $('#cookieSettings').onclick = () => box.classList.add('show');
     const c = getConsent();
     if (c === 'all') { metrika(); return; }
     if (c) return;
-    const box = $('#cookie'); if (!box) return;
     setTimeout(() => box.classList.add('show'), 1200);
-    $('#cookieYes').onclick = () => setConsent('all');
-    $('#cookieNo').onclick = () => setConsent('min');
   }
 
   /* ---------- Запись: окно YClients прямо на сайте ---------- */
@@ -494,7 +521,12 @@
       if (m && m.dataset.master) open(`${base}/personal/select-master?o=m${m.dataset.master}`);
       if (e.target.closest('[data-close]')) close();
     });
-    addEventListener('keydown', e => { if (e.key === 'Escape') close(); });
+    addEventListener('keydown', e => {
+      if (e.key === 'Escape') close();
+      // карточка мастера с клавиатуры
+      const m = (e.key === 'Enter' || e.key === ' ') && e.target.closest?.('[data-master]');
+      if (m && m.dataset.master) { e.preventDefault(); open(`${base}/personal/select-master?o=m${m.dataset.master}`); }
+    });
   }
 
   /* ---------- Мелочи ---------- */

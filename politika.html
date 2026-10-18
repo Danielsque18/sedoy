@@ -37,7 +37,7 @@ a{color:var(--white)}
   <p>Оператор персональных данных — владелец барбершопа SEDOY (далее — Оператор):</p>
   <div class="req">
     <p><span data-l="operator"></span></p>
-    <p>ИНН: <span data-l="inn"></span>, ОГРН/ОГРНИП: <span data-l="ogrn"></span></p>
+    <p>ИНН: <span data-l="inn"></span>, <span id="ogrnLabel">ОГРН/ОГРНИП</span>: <span data-l="ogrn"></span></p>
     <p>Адрес: <span data-l="address"></span></p>
     <p>Почта для вопросов о персональных данных: <span data-l="email"></span></p>
   </div>
@@ -69,7 +69,7 @@ a{color:var(--white)}
 
   <h2>7. Ваши права</h2>
   <p>Вы можете узнать, какие ваши данные мы обрабатываем, попросить их исправить или удалить, отозвать согласие. Для этого напишите на <span data-l="email"></span> или позвоните по телефону <span data-l="phone"></span>. Ответим в течение 10 рабочих дней.</p>
-  <p>Отказаться от cookie можно в настройках браузера: удалите cookie этого сайта, и уведомление появится снова.</p>
+  <p>Изменить решение о cookie можно в любой момент: внизу главной страницы нажмите «Настройки cookie» и выберите «Принять» или «Отказаться».</p>
 
   <h2>8. Изменения</h2>
   <p>Оператор может обновлять эту политику. Актуальная версия всегда размещена на этой странице.</p>
@@ -81,8 +81,11 @@ a{color:var(--white)}
   try { const r = await fetch('data/content.json?v=' + Date.now(), { cache: 'no-store' }); if (r.ok) C = await r.json(); } catch (e) {}
   C ||= window.SEDOY_SEED || {};
   // в демо правки админки хранятся в браузере — показываем их, как и на главной
-  try { const d = JSON.parse(localStorage.getItem('sedoy_demo_content') || 'null'); if (d && d.legal) C = d; } catch (e) {}
+  try { const d = JSON.parse(localStorage.getItem('sedoy_demo_content') || 'null'); if (d && d.legal && d.rev === C.rev) C = d; } catch (e) {}
   const L = C.legal || {}, B = C.brand || {};
+  // у ИП — ОГРНИП (15 цифр), у ООО — ОГРН (13 цифр)
+  const og = String(L.ogrn || '').replace(/\D/g, '');
+  document.getElementById('ogrnLabel').textContent = og.length === 15 || /^(ИП|индивидуальный)/i.test(L.operator || '') ? 'ОГРНИП' : og.length === 13 ? 'ОГРН' : 'ОГРН/ОГРНИП';
   const val = { operator: L.operator, inn: L.inn, ogrn: L.ogrn, address: L.address, email: L.email || B.email, date: L.date, phone: B.phone };
   document.querySelectorAll('[data-l]').forEach(el => {
     const v = String(val[el.dataset.l] || '').trim();

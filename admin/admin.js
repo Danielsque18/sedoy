@@ -30,7 +30,14 @@
       if (r.ok) base = await r.json();
     } catch (e) {}
     base ||= JSON.parse(JSON.stringify(window.SEDOY_SEED));
-    if (demo) { try { const d = localStorage.getItem(DEMO_KEY); if (d) return upgradeDraft(JSON.parse(d), base); } catch (e) {} }
+    if (demo) {
+      try {
+        const d = JSON.parse(localStorage.getItem(DEMO_KEY) || 'null');
+        // сайт обновился после сохранения черновика — черновик устарел, начинаем со свежей версии
+        if (d && d.rev !== base.rev) { localStorage.removeItem(DEMO_KEY); setTimeout(() => toast('Сайт обновился — демо-правки сброшены, открыта свежая версия'), 800); }
+        else if (d) return upgradeDraft(d, base);
+      } catch (e) {}
+    }
     return base;
   }
   // черновик демо мог быть сохранён старой версией сайта — дополняем его новыми полями из свежего content.json
@@ -192,7 +199,7 @@
     if (a === 'photo') {
       const p = await uploadImage(await pickImage()); if (!p) return;
       if (t.dataset.list === 'masters') arr[i].photo = p;
-      else if (t.dataset.list === 'perks' || t.dataset.list === 'offers') arr[i].img = p;
+      else if (t.dataset.list === 'perks' || t.dataset.list === 'offers') { arr[i].img = p; delete arr[i].pos; }
       else arr[i].src = p;
     }
     render(); markDirty();
@@ -325,11 +332,36 @@
 
     perks() {
       C.perks = C.perks.map(p => typeof p === 'string' ? { title: p, text: '', img: '' } : p);
-      bindAfter = () => { $('#addP').onclick = () => { C.perks.push({ title: 'Новый пункт', text: '', img: '' }); render(); markDirty(); }; };
+      bindAfter = () => {
+        $('#addP').onclick = () => { C.perks.push({ title: 'Новый пункт', text: '', img: '' }); render(); markDirty(); };
+        // нажали на фото — эта точка всегда будет в кадре и на телефоне, и на компьютере
+        $$('[data-fx]').forEach(el => el.onclick = e => {
+          const r = el.querySelector('img').getBoundingClientRect();
+          const x = Math.round(Math.min(100, Math.max(0, (e.clientX - r.left) / r.width * 100)));
+          const y = Math.round(Math.min(100, Math.max(0, (e.clientY - r.top) / r.height * 100)));
+          const card = el.closest('.fx'), v = `${x}% ${y}%`;
+          C.perks[+el.dataset.fx].pos = v;
+          card.querySelector('.fx__pick i').style.cssText = `left:${x}%;top:${y}%`;
+          card.querySelectorAll('.fx__m img').forEach(im => im.style.objectPosition = v);
+          markDirty();
+        });
+      };
+      const focus = (p, i) => {
+        if (!p.img) return '';
+        const v = p.pos || '50% 50%', [x, y] = v.split(' ');
+        return `<div class="fx"><p class="fx__t">Что будет в кадре: нажмите на фото туда, где лицо или самое важное — эта часть не обрежется.</p>
+          <div class="fx__row">
+            <div class="fx__pick" data-fx="${i}"><img src="${esc(imgSrc(p.img))}" alt=""><i style="left:${x};top:${y}"></i></div>
+            <div class="fx__pv">
+              <figure>На телефоне<div class="fx__m fx__m--phone"><img src="${esc(imgSrc(p.img))}" alt="" style="object-position:${v}"></div></figure>
+              <figure>На компьютере<div class="fx__m fx__m--pc"><img src="${esc(imgSrc(p.img))}" alt="" style="object-position:${v}"></div></figure>
+            </div>
+          </div></div>`;
+      };
       return `<h1>Сервис</h1><p class="lead">Блок «Больше, чем стрижка»: у каждого пункта своё фото, оно меняется на сайте при прокрутке.</p>
         ${C.perks.map((p, i) => `<div class="card mst">
           <div class="ph">${p.img ? `<img src="${esc(imgSrc(p.img))}" alt="">` : ''}<button class="ph__btn" data-act="photo" data-list="perks" data-i="${i}">Сменить фото</button></div>
-          <div>${field('Заголовок', `perks.${i}.title`)}<div style="height:10px"></div>${field('Текст', `perks.${i}.text`, { area: true })}${tools('perks', i)}</div></div>`).join('')}
+          <div>${field('Заголовок', `perks.${i}.title`)}<div style="height:10px"></div>${field('Текст', `perks.${i}.text`, { area: true })}${tools('perks', i)}</div>${focus(p, i)}</div>`).join('')}
         <button class="add" id="addP">+ Добавить пункт</button>`;
     },
 

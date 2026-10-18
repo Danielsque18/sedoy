@@ -99,14 +99,29 @@ h2{font-size:clamp(32px,4.4vw,62px)}
 @keyframes drip{0%{transform:translateY(-100%)}100%{transform:translateY(100%)}}
 
 /* hall */
-.hall{position:relative;height:150vh}
-.hall__img{position:sticky;top:0;height:100vh;overflow:hidden}
-.hall__img img{width:100%;height:100%;object-fit:cover;object-position:50% 0;transform-origin:50% 0;transform:scale(var(--hs,1.25));filter:brightness(var(--hb,.35)) saturate(.9);transition:transform .1s linear}
-.hall__img::after{content:"";position:absolute;inset:0;background:linear-gradient(180deg,var(--ink) 0%,transparent 25%,transparent 60%,var(--ink) 100%),linear-gradient(90deg,rgba(10,10,11,.7),transparent 55%)}
+.hall{position:relative;height:150vh;height:150lvh}
+.hall__img{position:sticky;top:0;height:100vh;height:100lvh;overflow:hidden}
+/* «стена отъезжает»: меняем только transform и opacity — их браузер считает на видеокарте, без перерисовки фото */
+.hall__img img{width:100%;height:100%;object-fit:cover;object-position:50% 0;transform-origin:50% 0;transform:scale(var(--hs,1.25)) translateZ(0);filter:saturate(.9);will-change:transform;backface-visibility:hidden}
+.hall__img::before{content:"";position:absolute;inset:0;z-index:1;background:#000;opacity:var(--hd,.5);will-change:opacity}
+.hall__img::after{content:"";position:absolute;inset:0;z-index:2;background:linear-gradient(180deg,var(--ink) 0%,transparent 25%,transparent 60%,var(--ink) 100%),linear-gradient(90deg,rgba(10,10,11,.7),transparent 55%)}
+/* где браузер умеет анимацию по прокрутке — ведёт её сам, синхронно с пальцем */
+@supports (animation-timeline: view()) {
+  .hall{view-timeline:--hall block}
+  .hall__img img{animation:hallZoom linear both;animation-timeline:--hall;animation-range:contain 0% contain 100%}
+  .hall__img::before{animation:hallLight linear both;animation-timeline:--hall;animation-range:contain 0% contain 100%}
+}
+@keyframes hallZoom{from{transform:scale(1.25) translateZ(0)}to{transform:scale(1) translateZ(0)}}
+@keyframes hallLight{from{opacity:.5}62.5%,to{opacity:.05}}
+@media (prefers-reduced-motion:reduce){.hall__img img,.hall__img::before{animation:none!important}}
 .hall__cap{position:absolute;left:0;right:0;bottom:22vh;width:min(1240px,100% - 32px);margin:0 auto;z-index:2}
 .hall__cap h2{max-width:900px;font-size:clamp(36px,5.6vw,80px);text-shadow:0 4px 40px rgba(0,0,0,.6)}
 .hall__cap p:not(.eyebrow){max-width:520px;margin-top:20px;color:var(--white);font-size:17px;text-shadow:0 2px 16px rgba(0,0,0,.9)}
 .hall__cap .eyebrow{color:var(--white)}
+/* на широком экране вывеска на фото стоит по центру — текст держим вверху слева, неподвижно вместе с фото, чтобы он не проезжал по вывеске */
+@media (min-width:901px){
+  .hall__cap{position:sticky;top:max(96px,13vh);bottom:auto;margin:calc(13vh - 100lvh) auto 0}
+}
 
 /* numbers */
 .numbers{padding:40px 0 0}
@@ -303,7 +318,7 @@ h2{font-size:clamp(32px,4.4vw,62px)}
 .app__list li::before{content:"";position:absolute;left:0;top:.6em;width:8px;height:8px;border-radius:2px;border:1.5px solid var(--led);box-shadow:0 0 6px rgba(214,232,255,.5)}
 .app__btns{display:flex;gap:12px;flex-wrap:wrap}
 .store{display:inline-flex;align-items:center;gap:12px;height:56px;padding:0 20px;border-radius:12px;background:var(--white);color:#000;font-weight:600}
-.store small{display:block;font-size:10px;font-weight:500;opacity:.7;line-height:1}
+.store small{display:block;font-size:12px;font-weight:500;opacity:.7;line-height:1}
 .store b{display:block;font-size:17px;line-height:1.1}
 .store--soon{background:transparent;color:var(--mute);border:1px dashed #3a3a40}
 .phone{justify-self:center;width:270px;aspect-ratio:9/18.5;border-radius:44px;padding:10px;background:linear-gradient(145deg,#3a3a3f,#141416);box-shadow:0 40px 90px rgba(0,0,0,.7),0 0 0 1px #4a4a50;transform:rotate(-6deg);transition:transform .6s}
